@@ -1,9 +1,12 @@
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { FiMoon, FiSun } from "react-icons/fi";
+import { useAppDispatch, useAppSelector } from "../store";
+import { toggleDarkMode } from "../store/DarkModeSlice";
 
 export default function DarkModeSwitch() {
-  const [isDark, setIsDark] = useState(false);
+  const dispatch = useAppDispatch();
+  const isDark = useAppSelector(state => state.darkMode.isDark);
 
   useEffect(() => {
         if (isDark) {
@@ -15,7 +18,7 @@ export default function DarkModeSwitch() {
 
   return (
     <button
-        onClick={() => setIsDark(!isDark)}
+        onClick={() => dispatch(toggleDarkMode())}
         className="relative flex items-center w-17 h-9 rounded-full bg-card transition-colors duration-300 cursor-pointer focus:outline-none"
     >
         <span

@@ -10,10 +10,10 @@ const MainLayout: FC = () => {
 
     return (
         <div className="sm:flex sm:justify-center">
-            <div className="sm:w-[400px] bg-secondary pb-[60px]">
+            <div className="sm:w-[400px] bg-secondary pb-[58px]">
                 <Outlet />
             </div>
-            <div className="sm:w-[400px] grid grid-cols-2 fixed bottom-0 w-full bg-secondary border-t border-line">
+            <div className="sm:w-[400px] grid grid-cols-2 fixed bottom-0 w-full bg-secondary border-t border-card">
                 <div className="flex justify-center p-2">
                     <div 
                         className={clsx("py-2 px-4 rounded-xl cursor-pointer transition-colors duration-200",
@@ -26,12 +26,12 @@ const MainLayout: FC = () => {
                 </div>
                 <div className="flex justify-center p-2">
                     <div className="relative">
-                        <div className="absolute right-1 top-1">
+                        <div className="absolute right-3 top-1">
                             <div 
-                                className="flex justify-center items-center bg-red-500 w-[20px] h-[20px] rounded-full cursor-pointer"
+                                className="flex justify-center items-center bg-red-500 w-[16px] h-[16px] rounded-full cursor-pointer"
                                 onClick={() => navigate('/cart')}
                             >
-                                <p className="text-[10px] font-semibold text-white">2</p>
+                                <p className="text-[9px] font-semibold text-white">20</p>
                             </div>
                         </div>
                         <div 

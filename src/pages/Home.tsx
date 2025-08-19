@@ -1,8 +1,8 @@
 import { useEffect, useState, type FC } from "react";
 import { IoBagAddOutline } from "react-icons/io5";
-import { LuSearch } from "react-icons/lu";
 import { PiCoffeeBeanFill } from "react-icons/pi";
-import { RiArrowUpCircleLine, RiCloseCircleLine, RiCloseLine } from "react-icons/ri";
+import { RiArrowUpCircleLine, RiCloseLine } from "react-icons/ri";
+import { useNavigate } from "react-router-dom";
 import CategoryFilter from "../components/CategoryFilter";
 import DarkModeSwitch from "../components/DarkModeSwitch";
 import { Categories, Products } from "../config/db";
@@ -12,6 +12,7 @@ const Home: FC = () => {
     const [selectCategory, setSelectCategory] = useState<number>(0);
     const [searchText, setSearchText] = useState<string>('');
     const [showScroll, setShowScroll] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -46,15 +47,16 @@ const Home: FC = () => {
         return (
             <div
                 key={item.id}
-                className="bg-card2 rounded-xl shadow-lg"
+                className="bg-card2 p-1 rounded-xl border border-card hover:bg-gray-100"
+                onClick={() => navigate(`/detail/${item.id}`)}
             >
                 <img 
                     src={item.img}
                     alt={item.title}
-                    className="w-full h-[150px] rounded-xl object-cover"
+                    className="w-full h-[150px] rounded-lg object-cover"
                 />
-                <div className="py-2 px-3">
-                    <p className="font-semibold">{item.title}</p>
+                <div className="py-2 px-1">
+                    <p className="font-semibold line-clamp-1">{item.title}</p>
                     <p className="text-sm text-gray-400">{categoryProduct?.name}</p>
                     <div className="mt-2 flex justify-between items-center">
                         <p className="font-bold text-primary">{item.price.toLocaleString("id-ID")}</p>
@@ -104,38 +106,14 @@ const Home: FC = () => {
                     ))}
                 </div>
             </div> */}
-            <div className="p-3 relative">
-                <div className="absolute top-[21px] left-[23px]">
-                    <LuSearch 
-                        size={22}
-                        className="text-gray-400"
-                    />
-                </div>
-                {searchText && (
-                    <div className="absolute top-[21px] right-[23px]">
-                        <RiCloseCircleLine 
-                            size={22}
-                            className="text-gray-400"
-                            onClick={() => setSearchText('')}
-                        />
-                    </div>
-                )}
-                <div>
-                    <input
-                        type="text"
-                        className="w-full focus:outline-primary focus:outline-2 py-2 px-10 placeholder-gray-400 bg-card rounded-2xl"
-                        placeholder="Search Food"
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                    />
-                </div>
-            </div>
             <div>
                 {/* <div className="px-3 font-semibold text-lg">Products</div> */}
                 <CategoryFilter 
-                    setOpen={setOpen} 
+                    setOpen={setOpen}
                     selectCategory={selectCategory}
                     setSelectCategory={setSelectCategory}
+                    searchText={searchText}
+                    setSearchText={setSearchText}
                 />
                 <div className="grid grid-cols-2 p-3 gap-3">
                     {productList}

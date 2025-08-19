@@ -2,7 +2,9 @@ import type { FC } from "react";
 
 const Cart: FC = () => {
     return (
-        <div>Cart</div>
+        <div className="min-h-screen">
+
+        </div>
     )
 }
 
