@@ -5,7 +5,12 @@ import { RiArrowUpCircleLine, RiCloseLine } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import CategoryFilter from "../components/CategoryFilter";
 import DarkModeSwitch from "../components/DarkModeSwitch";
-import { Categories, Products } from "../config/db";
+import { Categories } from "../config/db";
+import { FaBoxOpen } from "react-icons/fa6";
+import { useAppDispatch } from "../store";
+import { addToCart } from "../store/CartSlice";
+import { useCartIcon } from "../contexts/CartIconContext";
+import { useGetProductQuery } from "../services/apiProduct";
 
 const Home: FC = () => {
     const [open, setOpen] = useState<boolean>(false);
@@ -13,6 +18,41 @@ const Home: FC = () => {
     const [searchText, setSearchText] = useState<string>('');
     const [showScroll, setShowScroll] = useState(false);
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
+    const cartRef = useCartIcon();
+    const {data: Products = []} = useGetProductQuery();
+
+    const handleAddToCart = (e: React.MouseEvent, item: any) => {
+        e.stopPropagation();
+        dispatch(addToCart(item));
+
+        const productCard = (e.currentTarget as HTMLElement).closest(".product-card");
+        const img = productCard?.querySelector("img");
+        if (!img || !cartRef?.current) return;
+
+        const imgRect = img.getBoundingClientRect();
+        const cartRect = cartRef.current.getBoundingClientRect();
+
+        const flyingImg = img.cloneNode(true) as HTMLImageElement;
+        flyingImg.style.position = "fixed";
+        flyingImg.style.left = imgRect.left + "px";
+        flyingImg.style.top = imgRect.top + "px";
+        flyingImg.style.width = imgRect.width + "px";
+        flyingImg.style.height = imgRect.height + "px";
+        flyingImg.style.transition = "all 0.8s ease-in-out";
+        flyingImg.style.zIndex = "9999";
+        document.body.appendChild(flyingImg);
+
+        requestAnimationFrame(() => {
+            flyingImg.style.left = cartRect.left + cartRect.width / 2 - 15 + "px"; // center X (30px target width)
+            flyingImg.style.top = cartRect.top + cartRect.height / 2 - 15 + "px";  // center Y (30px target height)
+            flyingImg.style.width = "30px";
+            flyingImg.style.height = "30px";
+            flyingImg.style.opacity = "0.3";
+        });
+
+        flyingImg.addEventListener("transitionend", () => flyingImg.remove());
+    };
 
     useEffect(() => {
         const handleScroll = () => {
@@ -32,35 +72,37 @@ const Home: FC = () => {
     };
 
     const filteredProduct = selectCategory 
-    ? Products.filter(p => p.category === selectCategory)
+    ? Products.filter(p => p.kategori === selectCategory)
     : Products;
 
     const searchedProduct = searchText
     ? Products.filter(p =>
-      p.title.toLowerCase().includes(searchText.toLowerCase())
+      p.nama.toLowerCase().includes(searchText.toLowerCase())
     )
     : filteredProduct;
-
+    
     const productList = searchedProduct.map(item => {
-        const categoryProduct = Categories.find(c => c.id === item.category);
+        const categoryProduct = Categories.find(c => c.id === item.kategori);
 
         return (
             <div
                 key={item.id}
-                className="bg-card2 p-1 rounded-xl border border-card hover:bg-gray-100"
+                className="product-card bg-card2 p-1 rounded-xl border border-card cursor-pointer"
                 onClick={() => navigate(`/detail/${item.id}`)}
             >
                 <img 
-                    src={item.img}
-                    alt={item.title}
+                    src={`http://localhost:3001${item.image_path}`}
+                    alt={item.image_title}
                     className="w-full h-[150px] rounded-lg object-cover"
                 />
-                <div className="py-2 px-1">
-                    <p className="font-semibold line-clamp-1">{item.title}</p>
+                <div className="p-2">
+                    <p className="font-semibold line-clamp-1">{item.nama}</p>
                     <p className="text-sm text-gray-400">{categoryProduct?.name}</p>
                     <div className="mt-2 flex justify-between items-center">
-                        <p className="font-bold text-primary">{item.price.toLocaleString("id-ID")}</p>
-                        <div>
+                        <p className="font-bold text-primary">{item.harga.toLocaleString("id-ID")}</p>
+                        <div
+                            onClick={(e) => handleAddToCart(e, item)}
+                        >
                             <IoBagAddOutline size={25}/>
                         </div>
                     </div>
@@ -115,9 +157,16 @@ const Home: FC = () => {
                     searchText={searchText}
                     setSearchText={setSearchText}
                 />
-                <div className="grid grid-cols-2 p-3 gap-3">
-                    {productList}
-                </div>
+                {searchedProduct.length > 0 ? (
+                    <div className="grid grid-cols-2 p-3 gap-3"> 
+                        {productList}
+                    </div>
+                ) : (
+                    <div className="flex flex-col justify-center items-center text-gray-400 mt-10">
+                        <FaBoxOpen size={96}/>
+                        <p className="text-lg font-bold">No Product Found</p>
+                    </div>
+                )}
             </div>
             {open && (
                 <div
@@ -129,7 +178,7 @@ const Home: FC = () => {
             {showScroll && (
                 <button
                     onClick={scrollToTop}
-                    className="fixed bottom-17 right-3 bg-primary text-white p-3 rounded-full shadow-lg opacity-80 transition z-30"
+                    className="fixed bottom-29 right-3 sm:right-[490px] bg-primary text-white p-3 rounded-full shadow-lg opacity-80 transition z-30 cursor-pointer"
                 >
                     <RiArrowUpCircleLine size={28} />
                 </button>
@@ -137,7 +186,7 @@ const Home: FC = () => {
 
             {/* BOTTOM SHEET */}
             <div
-                className={`fixed bottom-0 left-0 w-full h-1/2 bg-main rounded-t-2xl shadow-lg z-50 transform transition-transform duration-300 ${
+                className={`fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[400px] h-1/2 bg-main rounded-t-2xl shadow-lg z-50 transform transition-transform duration-300 ${
                 open ? "translate-y-0" : "translate-y-full"
                 }`}
             >
@@ -146,6 +195,7 @@ const Home: FC = () => {
                     <div></div>
                     <h2 className="font-semibold text-lg">Filter</h2>
                     <button
+                        className="cursor-pointer"
                         onClick={() => setOpen(false)}
                     >
                         <RiCloseLine size={30}/>

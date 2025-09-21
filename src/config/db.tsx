@@ -1,19 +1,12 @@
 import type { JSX } from "react";
 import { PiBowlFood, PiCoffeeBean, PiPopcorn } from "react-icons/pi";
 import { RiDrinks2Line } from "react-icons/ri";
+import type { ProductProps } from "../interfaces/product";
 
 interface Categories {
     id: number;
     name: string;
     icon: JSX.Element;
-}
-
-interface Products {
-    id: number;
-    title: string;
-    category: number;
-    img: string;
-    price: number;
 }
 
 export const Categories: Categories[] = [
@@ -39,7 +32,7 @@ export const Categories: Categories[] = [
     }
 ];
 
-export const Products: Products[] = [
+export const Products: ProductProps[] = [
     {
         id: 1,
         title: 'Kopi Butterscotch',

@@ -21,7 +21,7 @@
 }
 
 .dark {
-  --color-primary: #9092DA; /* dark mode */
+  --color-primary: oklch(72.3% 0.219 149.579); /* dark mode */
   --color-main: #17161B;
   --color-secondary: #17161B;
   --color-card: #28272C;
@@ -44,4 +44,22 @@ body {
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari */
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+@keyframes fade {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.animate-fade {
+  animation: fade 2s ease-in-out infinite;
 }

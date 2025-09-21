@@ -1,19 +1,31 @@
-import { combineReducers, configureStore } from '@reduxjs/toolkit'
-import storage from 'redux-persist/lib/storage'
-import DarkModeSlice from './DarkModeSlice'
+import { combineReducers, configureStore } from '@reduxjs/toolkit';
+import storage from 'redux-persist/lib/storage';
+import DarkModeSlice from './DarkModeSlice';
+import CartSlice from './CartSlice';
+import AuthSlice from './AuthSlice';
 import { persistReducer } from 'redux-persist';
 import { persistStore } from 'redux-persist';
 import { useDispatch, type TypedUseSelectorHook } from 'react-redux';
 import { useSelector } from 'react-redux';
+import { apiProduct } from '../services/apiProduct';
+import { apiAuth } from '../services/apiAuth';
+import { apiPayment } from '../services/apiPayment';
+import { apiOrder } from '../services/apiOrder';
 
 const persistConfig = {
     key: 'root',
     storage,
-    whitelist: ['darkMode']
+    whitelist: ['darkMode', 'cart', 'auth']
 }
 
 const rootReducer = combineReducers({
-    darkMode: DarkModeSlice
+    darkMode: DarkModeSlice,
+    cart: CartSlice,
+    auth: AuthSlice,
+    [apiProduct.reducerPath]: apiProduct.reducer,
+    [apiAuth.reducerPath]: apiAuth.reducer,
+    [apiPayment.reducerPath]: apiPayment.reducer,
+    [apiOrder.reducerPath]: apiOrder.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -23,7 +35,12 @@ export const store = configureStore({
     middleware: (getDefaultMiddleware) => 
         getDefaultMiddleware({
             serializableCheck: false
-        })
+        }).concat(
+            apiProduct.middleware,
+            apiAuth.middleware,
+            apiPayment.middleware,
+            apiOrder.middleware,
+        )
 });
 
 export const persistor = persistStore(store);

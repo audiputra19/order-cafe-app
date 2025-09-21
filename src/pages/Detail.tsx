@@ -1,59 +1,138 @@
-import type { FC } from "react";
+import { useState, type FC } from "react";
 import { MdOutlineArrowBack } from "react-icons/md";
 import { RiShoppingBag4Line } from "react-icons/ri";
 import { useNavigate, useParams } from "react-router-dom";
 import { Products } from "../config/db";
+import { useAppDispatch, useAppSelector } from "../store";
+import clsx from "clsx";
+import { FiMinus, FiPlus } from "react-icons/fi";
+import { addToCartWithQty } from "../store/CartSlice";
+import { useCartIcon } from "../contexts/CartIconContext";
+import { useGetProductQuery } from "../services/apiProduct";
 
 const Detail: FC = () => {
     const navigate = useNavigate();
     const {id} = useParams();
-    const selectedProduct = Products.find(p => p.id === Number(id));
+    const {data: Products = []} = useGetProductQuery();
+    const selectedProduct = Products.find(p => p.id === id);
+    const cart = useAppSelector(state => state.cart.items);
+    const [qty, setQty] = useState<number>(1);
+    const dispatch = useAppDispatch();
+    const cartRef = useCartIcon();
+
+    const handleAddToCart = (e: React.MouseEvent, item: any) => {
+        if (selectedProduct) {
+            dispatch(addToCartWithQty({ product: item, quantity: qty }));
+        }
+
+        const img = document.querySelector(".detail-product-img") as HTMLImageElement | null;
+        if (!img || !cartRef?.current) return;
+
+        const imgRect = img.getBoundingClientRect();
+        const cartRect = cartRef.current.getBoundingClientRect();
+
+        const flyingImg = img.cloneNode(true) as HTMLImageElement;
+        flyingImg.style.position = "fixed";
+        flyingImg.style.left = imgRect.left + "px";
+        flyingImg.style.top = imgRect.top + "px";
+        flyingImg.style.width = imgRect.width + "px";
+        flyingImg.style.height = imgRect.height + "px";
+        flyingImg.style.transition = "all 0.8s ease-in-out";
+        flyingImg.style.zIndex = "9999";
+        document.body.appendChild(flyingImg);
+
+        requestAnimationFrame(() => {
+        flyingImg.style.left = cartRect.left + "px";
+        flyingImg.style.top = cartRect.top + "px";
+        flyingImg.style.width = "30px";
+        flyingImg.style.height = "30px";
+        flyingImg.style.opacity = "0.3";
+        });
+
+        flyingImg.addEventListener("transitionend", () => flyingImg.remove());
+    };
 
     return (
-        <div className="bg-main min-h-screen">
-            <div className="relative">
-                <div className="absolute w-full flex justify-between items-center p-3">
-                    <div 
-                        className="bg-white text-black p-2 rounded-full"
-                        onClick={() => navigate(-1)}
-                    >
-                        <MdOutlineArrowBack size={25}/>
-                    </div>
-                    <div>
-                        <p className="text-lg text-black font-bold px-5 py-1 bg-white rounded-full">Detail</p>
-                    </div>
-                    <div>
-                        <div className="relative">
-                            <div className="absolute right-1 top-1 z-10">
+        <div className="sm:flex sm:justify-center">
+            <div className="sm:w-[400px] bg-main min-h-screen">
+                <div className="relative">
+                    <div className="absolute w-full flex justify-between items-center p-3">
+                        <div 
+                            className="bg-white text-black p-2 rounded-full cursor-pointer"
+                            onClick={() => navigate(-1)}
+                        >
+                            <MdOutlineArrowBack size={25}/>
+                        </div>
+                        <div>
+                            <p className="text-lg text-black font-bold px-5 py-1 bg-white rounded-full">Detail</p>
+                        </div>
+                        <div>
+                            <div className="relative" ref={cartRef}>
+                                {cart.length > 0 && (
+                                    <div className="absolute right-1 top-1 z-10">
+                                        <div 
+                                            className="flex justify-center items-center bg-red-500 w-[16px] h-[16px] rounded-full cursor-pointer"
+                                            onClick={() => navigate('/cart-detail', {state: {from: 'cart-detail'}})}
+                                        >
+                                            <p className="text-[9px] font-semibold text-white">{cart.length}</p>
+                                        </div>
+                                    </div>
+                                )}
                                 <div 
-                                    className="flex justify-center items-center bg-red-500 w-[16px] h-[16px] rounded-full cursor-pointer"
-                                    onClick={() => navigate('/cart')}
+                                    className="bg-white text-black p-2 rounded-full cursor-pointer"
+                                    onClick={() => navigate('/cart-detail', {state: {from: 'cart-detail'}})}    
                                 >
-                                    <p className="text-[9px] font-semibold text-white">20</p>
+                                    <RiShoppingBag4Line size={25} />
                                 </div>
-                            </div>
-                            <div 
-                                className="bg-white text-black p-2 rounded-full"
-                                onClick={() => navigate('/cart')}    
-                            >
-                                <RiShoppingBag4Line size={25} />
                             </div>
                         </div>
                     </div>
+                    <img 
+                        src={`http://localhost:3001${selectedProduct?.image_path}`}
+                        alt={selectedProduct?.nama}
+                        className="detail-product-img w-full h-[350px] object-cover bg-card"
+                    />
                 </div>
-                <img 
-                    src={selectedProduct?.img}
-                    alt={selectedProduct?.title}
-                    className="w-full h-[350px] object-cover bg-card"
-                />
-            </div>
-            <div className="p-3">
-                <p className="text-xl font-bold">{selectedProduct?.title}</p>
-            </div>
-            <div className="p-3">
-                <div className="p-4 bg-card2 border border-card rounded-xl">
-                    <p className="text-base font-bold">Description</p>
-                    <p className="text-sm mt-3 text-gray-400">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Officiis repellat dolor mollitia et debitis placeat nam, blanditiis aut unde! Facilis ab iste tenetur ducimus maiores culpa asperiores quos labore excepturi!</p>
+                <div className="flex justify-between p-3">
+                    <p className="text-xl font-bold">{selectedProduct?.nama}</p>
+                    <p className="text-xl font-bold text-primary"><span className="text-sm">Rp. </span>{selectedProduct?.harga.toLocaleString("id-ID")}</p>
+                </div>
+                <div className="p-3 pb-[83px]">
+                    <div className="p-4 bg-card2 border border-card rounded-xl">
+                        <p className="text-base font-bold">Description</p>
+                        <p className="text-sm mt-3 text-gray-400">{selectedProduct?.deskripsi}</p>
+                    </div>
+                </div>
+                <div className={clsx("fixed bottom-0 p-3 w-full sm:w-[400px] bg-main")}>
+                    <div className="flex justify-between gap-3">
+                        <div className="flex items-center">
+                            <button
+                                className="p-3 border-y border-l flex justify-center w-[50px] rounded-l-full border-gray-200 bg-card2 cursor-pointer"
+                                onClick={() => {
+                                    if(qty <= 1) {
+                                        setQty(1);
+                                        return;
+                                    }
+                                    setQty(qty - 1)
+                                }}
+                            >
+                                <FiMinus />
+                            </button>
+                            <p className="p-2 border-y border-gray-200 w-[40px] text-center bg-card2">{qty}</p>
+                            <button
+                                className="p-3 border-y border-r flex justify-center w-[50px] rounded-r-full border-gray-200 bg-card2 cursor-pointer"
+                                onClick={() => setQty(qty + 1)}
+                            >
+                                <FiPlus />
+                            </button>
+                        </div>
+                        <button
+                            className="flex-1 bg-primary p-3 rounded-full text-white font-semibold cursor-pointer"
+                            onClick={(e) => handleAddToCart(e, selectedProduct)}
+                        >
+                            Add to Cart
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

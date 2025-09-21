@@ -54,7 +54,7 @@ const CategoryFilter: FC<Props> = ({ setOpen, selectCategory, setSelectCategory,
                         />
                     </div>
                     {searchText && (
-                        <div className="absolute top-[21px] right-[66px]">
+                        <div className="absolute top-[21px] right-[66px] cursor-pointer">
                             <RiCloseCircleLine 
                                 size={19}
                                 className="text-gray-400"
@@ -73,7 +73,7 @@ const CategoryFilter: FC<Props> = ({ setOpen, selectCategory, setSelectCategory,
                     </div>
                 </div>
                 <div 
-                    className="border border-card bg-card2 flex justify-center items-center p-2 rounded-xl"
+                    className="border border-card bg-card2 flex justify-center items-center p-2 rounded-xl cursor-pointer"
                     onClick={() => setOpen(true)}
                 >
                     <LuSettings2 size={20}/>
