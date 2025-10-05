@@ -9,8 +9,17 @@ import { useAppSelector } from "../store";
 
 const Transaction: FC = () => {
     const meja = useAppSelector(state => state.auth.meja) ?? "";
-    const { data: getTransaction = [], refetch } = useGetOrderQuery(meja);
+    const { data: getTransaction = [], isError, refetch, isLoading: isloadingTransaction } = useGetOrderQuery(meja, {
+        refetchOnReconnect: true,
+        refetchOnFocus: true,
+    });
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if(isError) {
+            refetch();
+        }
+    }, [isError, refetch])
 
     useEffect(() => {
         socket.on("order:update", () => {
@@ -59,7 +68,23 @@ const Transaction: FC = () => {
                 </div>
                 <div className="p-5">
                     <div className="flex flex-col gap-3">
-                        {getTransaction.length > 0 ? (
+                        
+                        {/* Loading Screen */}
+                        {isloadingTransaction ? (
+                            <div className="flex flex-col gap-3">
+                                {Array.from({ length: 2 }).map((_, i) => (
+                                    <div 
+                                        className="w-full bg-card2 rounded-xl p-3 animate-pulse"
+                                        key={i}
+                                    >
+                                        <div className="flex justify-between gap-3">
+                                            <p className="font-semibold line-clamp-1 h-5 rounded-xl bg-main flex-1"></p>
+                                            <p className="font-semibold line-clamp-1 h-5 rounded-xl bg-main w-16"></p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div> 
+                        ) : getTransaction.length > 0 ? (
                             getTransaction?.map(item => {
                                 return (
                                     <div
@@ -69,10 +94,10 @@ const Transaction: FC = () => {
                                         <div className="flex justify-between items-center">
                                             <div>
                                                 <p className="text-sm font-semibold">{item.order_id}</p>
-                                                <p className="text-xs text-gray-400 mt-1">{moment(item.created_at).locale("id").format("D MMM YYYY HH:mm:ss")}</p>
+                                                <p className="text-xs text-gray-400 mt-1">{moment(item.created_at).locale("id").format("DD MMM YYYY HH:mm")}</p>
                                             </div>
                                             <div>
-                                                {item.status === 'unpaid' ? (
+                                                {item.status === 'unpaid' && item.metode !== 'cash' ? (
                                                     <div 
                                                         className={clsx("py-2 px-3 text-xs rounded-xl bg-yellow-500 text-white font-semibold cursor-pointer")}
                                                         onClick={() => handlePayAgain(item.snap_token, item.order_id)}
@@ -95,7 +120,7 @@ const Transaction: FC = () => {
                         ) : (
                             <div className="flex flex-col justify-center items-center text-gray-400 mt-10">
                                 <MdMoneyOff size={96}/>
-                                <p className="text-lg font-bold">Data is Empty</p>
+                                <p className="text-lg font-bold">Transaction is Empty</p>
                             </div>
                         )}
                     </div>

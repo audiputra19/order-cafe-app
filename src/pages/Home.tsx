@@ -1,26 +1,41 @@
 import { useEffect, useState, type FC } from "react";
+import { FaBoxOpen } from "react-icons/fa6";
 import { IoBagAddOutline } from "react-icons/io5";
+import { LuClipboardCheck } from "react-icons/lu";
 import { PiCoffeeBeanFill } from "react-icons/pi";
 import { RiArrowUpCircleLine, RiCloseLine } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import CategoryFilter from "../components/CategoryFilter";
 import DarkModeSwitch from "../components/DarkModeSwitch";
 import { Categories } from "../config/db";
-import { FaBoxOpen } from "react-icons/fa6";
+import { useCartIcon } from "../contexts/CartIconContext";
+import { useGetTotalOrderByIdQuery } from "../services/apiOrder";
+import { useGetProductQuery } from "../services/apiProduct";
 import { useAppDispatch } from "../store";
 import { addToCart } from "../store/CartSlice";
-import { useCartIcon } from "../contexts/CartIconContext";
-import { useGetProductQuery } from "../services/apiProduct";
+import { useGetCompanyProfileQuery } from "../services/apiProfile";
 
 const Home: FC = () => {
     const [open, setOpen] = useState<boolean>(false);
     const [selectCategory, setSelectCategory] = useState<number>(0);
     const [searchText, setSearchText] = useState<string>('');
     const [showScroll, setShowScroll] = useState(false);
+    const [sortType, setSortType] = useState<string>("");
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const cartRef = useCartIcon();
-    const {data: Products = []} = useGetProductQuery();
+    const {data: Products = [], isLoading: isLoadingProd, isError, refetch} = useGetProductQuery(undefined, {
+        refetchOnReconnect: true,
+        refetchOnFocus: true,
+    });
+    const {data: getTotalOrder = []} = useGetTotalOrderByIdQuery(undefined, {
+        refetchOnReconnect: true,
+        refetchOnFocus: true,
+    });
+    const {data: getCompanyProfile} = useGetCompanyProfileQuery(undefined, {
+        refetchOnReconnect: true,
+        refetchOnFocus: true,
+    })
 
     const handleAddToCart = (e: React.MouseEvent, item: any) => {
         e.stopPropagation();
@@ -55,6 +70,12 @@ const Home: FC = () => {
     };
 
     useEffect(() => {
+        if (isError) {
+            refetch();
+        }
+    }, [isError, refetch]);
+
+    useEffect(() => {
         const handleScroll = () => {
             if (window.scrollY > 400) {
                 setShowScroll(true);
@@ -71,18 +92,32 @@ const Home: FC = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
+    // sort product with category
     const filteredProduct = selectCategory 
     ? Products.filter(p => p.kategori === selectCategory)
     : Products;
 
+    // sort product with search
     const searchedProduct = searchText
     ? Products.filter(p =>
       p.nama.toLowerCase().includes(searchText.toLowerCase())
     )
     : filteredProduct;
+
+    // sort product with sort type
+    const sortedProduct = [...searchedProduct].sort((a, b) => {
+        const orderA = getTotalOrder?.find(o => o.produk_id === a.id)?.qty ?? 0;
+        const orderB = getTotalOrder?.find(o => o.produk_id === b.id)?.qty ?? 0;
+
+        if (sortType === "termurah") return a.harga - b.harga;
+        if (sortType === "termahal") return b.harga - a.harga;
+        if (sortType === "terlaris") return orderB - orderA;
+        return 0;
+    });
     
-    const productList = searchedProduct.map(item => {
+    const productList = sortedProduct.map(item => {
         const categoryProduct = Categories.find(c => c.id === item.kategori);
+        const orderCount = getTotalOrder?.find(c => c.produk_id === item.id)?.qty ?? 0;
 
         return (
             <div
@@ -98,6 +133,10 @@ const Home: FC = () => {
                 <div className="p-2">
                     <p className="font-semibold line-clamp-1">{item.nama}</p>
                     <p className="text-sm text-gray-400">{categoryProduct?.name}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                        <LuClipboardCheck size={16}/>
+                        <p className="text-xs">{orderCount} Order</p>
+                    </div>
                     <div className="mt-2 flex justify-between items-center">
                         <p className="font-bold text-primary">{item.harga.toLocaleString("id-ID")}</p>
                         <div
@@ -118,104 +157,131 @@ const Home: FC = () => {
     // ];
 
     return (
-        <div className="bg-main min-h-screen">
-            <div className="p-3 flex justify-between">
-                <div className="flex items-center gap-2">
-                    <PiCoffeeBeanFill size={28}/>
-                    <p className="text-2xl font-bold">Kopiku</p>
-                </div>
-                <DarkModeSwitch />
-            </div>
-            {/* <div className="">
-                <div className="flex overflow-x-auto gap-3 snap-x snap-mandatory hide-scrollbar p-3">
-                    {images.map((src, i) => (
-                        <div key={i} className="relative flex-shrink-0 snap-center w-[300px]">
-                            <div className="absolute bottom-3 left-3">
-                                <button 
-                                    className="flex items-center gap-1 px-4 py-1 bg-white font-bold text-sm text-black rounded-xl"
-                                    onClick={() => console.log("click")}
-                                >
-                                    View 
-                                    <IoMdArrowForward size={18}/>
-                                </button>
-                            </div>
-                            <img
-                                src={src}
-                                alt={`promo-${i}`}
-                                className="h-[200px] w-full object-cover rounded-lg"
+        <>
+            <div className="bg-main min-h-screen">
+                <div className="p-3 flex justify-between">
+                    <div className="flex items-center gap-3">
+                        {getCompanyProfile ? (
+                            <img 
+                                src={`http://localhost:3001${getCompanyProfile.image_path}`}
+                                alt={getCompanyProfile.image_title} 
+                                className="w-[35px] rounded-full"
                             />
-                        </div>
-                    ))}
-                </div>
-            </div> */}
-            <div>
-                {/* <div className="px-3 font-semibold text-lg">Products</div> */}
-                <CategoryFilter 
-                    setOpen={setOpen}
-                    selectCategory={selectCategory}
-                    setSelectCategory={setSelectCategory}
-                    searchText={searchText}
-                    setSearchText={setSearchText}
-                />
-                {searchedProduct.length > 0 ? (
-                    <div className="grid grid-cols-2 p-3 gap-3"> 
-                        {productList}
+                        ) : (
+                            <PiCoffeeBeanFill size={28}/>
+                        )}
+                        <p className="text-2xl font-bold">{getCompanyProfile?.name}</p>
                     </div>
-                ) : (
-                    <div className="flex flex-col justify-center items-center text-gray-400 mt-10">
-                        <FaBoxOpen size={96}/>
-                        <p className="text-lg font-bold">No Product Found</p>
+                    <DarkModeSwitch />
+                </div>
+                <div>
+                    {/* <div className="px-3 font-semibold text-lg">Products</div> */}
+                    <CategoryFilter 
+                        setOpen={setOpen}
+                        selectCategory={selectCategory}
+                        setSelectCategory={setSelectCategory}
+                        searchText={searchText}
+                        setSearchText={setSearchText}
+                    />
+
+                    {/* Loading Screen */}
+                    {isLoadingProd ? (
+                        <div className="grid grid-cols-2 p-3 gap-3">
+                            {Array.from({ length: 4 }).map((_, i) => (
+                                <div 
+                                    className="w-full bg-card2 rounded-xl p-2 animate-pulse"
+                                    key={i}
+                                >
+                                    <div className="w-full h-[150px] bg-main rounded-lg"></div>
+                                    <div className="p-2">
+                                        <p className="font-semibold line-clamp-1 h-5 rounded-xl bg-main"></p>
+                                        <div className="mt-2 flex justify-between items-center h-5 rounded-xl bg-main">
+                                            <p className="font-bold text-primary"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : searchedProduct.length > 0 ? (
+                        <div className="grid grid-cols-2 p-3 gap-3"> 
+                            {productList}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col justify-center items-center text-gray-400 mt-10">
+                            <FaBoxOpen size={96}/>
+                            <p className="text-lg font-bold">No Product Found</p>
+                        </div>
+                    )}
+                </div>
+                {open && (
+                    <div
+                        className="fixed inset-0 bg-black opacity-80 z-40"
+                        onClick={() => setOpen(false)}
+                    />
+                )}
+
+                {showScroll && (
+                    <div className="sm:w-[400px] sm:fixed sm:bottom-29 sm:left-1/2 sm:-translate-x-1/2">
+                        <button
+                            onClick={scrollToTop}
+                            className="sm:absolute fixed sm:bottom-0 bottom-29 right-3 bg-primary text-white p-3 rounded-full shadow-lg opacity-80 transition z-30 cursor-pointer"
+                        >
+                            <RiArrowUpCircleLine size={28} />
+                        </button>
                     </div>
                 )}
-            </div>
-            {open && (
+
+                {/* BOTTOM SHEET */}
                 <div
-                    className="fixed inset-0 bg-black opacity-80 z-40"
-                    onClick={() => setOpen(false)}
-                />
-            )}
-
-            {showScroll && (
-                <button
-                    onClick={scrollToTop}
-                    className="fixed bottom-29 right-3 sm:right-[490px] bg-primary text-white p-3 rounded-full shadow-lg opacity-80 transition z-30 cursor-pointer"
+                    className={`fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[400px] h-1/2 bg-main rounded-t-2xl shadow-lg z-50 transform transition-transform duration-300 ${
+                    open ? "translate-y-0" : "translate-y-full"
+                    }`}
                 >
-                    <RiArrowUpCircleLine size={28} />
-                </button>
-            )}
-
-            {/* BOTTOM SHEET */}
-            <div
-                className={`fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[400px] h-1/2 bg-main rounded-t-2xl shadow-lg z-50 transform transition-transform duration-300 ${
-                open ? "translate-y-0" : "translate-y-full"
-                }`}
-            >
-                {/* HEADER */}
-                <div className="p-4 border-b border-line flex justify-between items-center">
-                    <div></div>
-                    <h2 className="font-semibold text-lg">Filter</h2>
-                    <button
-                        className="cursor-pointer"
-                        onClick={() => setOpen(false)}
-                    >
-                        <RiCloseLine size={30}/>
-                    </button>
-                </div>
-
-                {/* MENU ITEMS */}
-                <div className="p-4 space-y-3">
-                    <div className="p-3 rounded-lg bg-card2 cursor-pointer hover:bg-gray-200">
-                        Termurah
+                    {/* HEADER */}
+                    <div className="p-4 border-b border-line flex justify-between items-center">
+                        <div></div>
+                        <h2 className="font-semibold text-lg">Filter</h2>
+                        <button
+                            className="cursor-pointer"
+                            onClick={() => setOpen(false)}
+                        >
+                            <RiCloseLine size={30}/>
+                        </button>
                     </div>
-                    <div className="p-3 rounded-lg bg-card2 cursor-pointer hover:bg-gray-200">
-                        Termahal
-                    </div>
-                    <div className="p-3 rounded-lg bg-card2 cursor-pointer hover:bg-gray-200">
-                        Terlaris
+
+                    {/* MENU ITEMS */}
+                    <div className="p-4 space-y-3">
+                        <div 
+                            onClick={() => {
+                                setSortType("termurah");
+                                setOpen(false);
+                            }}
+                            className="p-3 rounded-lg bg-card cursor-pointer"
+                        >
+                            Termurah
+                        </div>
+                        <div
+                            onClick={() => {
+                                setSortType("termahal");
+                                setOpen(false);
+                            }} 
+                            className="p-3 rounded-lg bg-card cursor-pointer"
+                        >
+                            Termahal
+                        </div>
+                        <div 
+                            onClick={() => {
+                                setSortType("terlaris");
+                                setOpen(false);
+                            }}
+                            className="p-3 rounded-lg bg-card cursor-pointer"
+                        >
+                            Terlaris
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     )
 }
 

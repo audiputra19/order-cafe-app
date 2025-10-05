@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from "../store";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { clearToken } from "../store/AuthSlice";
+import { removeAllCart } from "../store/CartSlice";
 
 interface Props {
     children: JSX.Element;
@@ -24,6 +25,7 @@ export const ProtectedRoute: FC<Props> = ({ children }) => {
 
             if(decodedToken.exp < currentTime) {
                 dispatch(clearToken());
+                dispatch(removeAllCart());
                 navigate('/warning-scan');
             }
         } else {

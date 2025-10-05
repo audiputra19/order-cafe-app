@@ -6,6 +6,7 @@ export interface GetOrderResponse {
     proses: string;
     created_at: string;
     snap_token: string;
+    metode: string;
 }
 
 export interface GetOrderRequest {
@@ -29,4 +30,10 @@ export interface FinishOrderResponse {
 
 export interface FinishOrderRequest {
     order_id: string
+}
+
+export interface GetTotalOrderByIdResponse {
+    produk_id: string;
+    qty: number;
+    message?: string;
 }

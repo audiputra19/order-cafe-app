@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from './baseQuery'
-import type { FinishOrderRequest, FinishOrderResponse, GetOrderItemsRequest, GetOrderItemsResponse, GetOrderRequest, GetOrderResponse } from "../interfaces/order";
+import type { FinishOrderRequest, FinishOrderResponse, GetOrderItemsRequest, GetOrderItemsResponse, GetOrderRequest, GetOrderResponse, GetTotalOrderByIdResponse } from "../interfaces/order";
 
 export const apiOrder = createApi({
     reducerPath: 'apiOrder',
@@ -22,23 +22,31 @@ export const apiOrder = createApi({
             }),
             invalidatesTags: ["Order"]
         }),
-        getOrderItems: builder.mutation<GetOrderItemsResponse[], GetOrderItemsRequest>({
+        getOrderItems: builder.query<GetOrderItemsResponse[], GetOrderItemsRequest>({
             query: (body) => ({
                 url: 'order/get-order-items',
                 method: 'POST',
                 body
             }),
-            invalidatesTags: ["Order"]
+            providesTags: ["Order"]
         }),
-        getOrderById: builder.mutation<GetOrderResponse, GetOrderRequest>({
+        getOrderById: builder.query<GetOrderResponse, GetOrderRequest>({
             query: (body) => ({
                 url: 'order/get-orderbyid',
                 method: 'POST',
                 body
             }),
-            invalidatesTags: ["Order"]
+            providesTags: ["Order"]
+        }),
+        getTotalOrderById: builder.query<GetTotalOrderByIdResponse[], void>({
+            query: () => ({
+                url: 'order/get-total-orderbyid',
+                method: 'GET'
+            })
         })
     })
 })
 
-export const { useGetOrderQuery, useFinishOrderMutation, useGetOrderItemsMutation, useGetOrderByIdMutation } = apiOrder;
+export const { useGetOrderQuery, useFinishOrderMutation, useGetOrderItemsQuery, useGetOrderByIdQuery,
+     useGetTotalOrderByIdQuery
+} = apiOrder;

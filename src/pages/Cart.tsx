@@ -1,15 +1,16 @@
 import clsx from "clsx";
-import type { FC } from "react";
+import { useState, type FC } from "react";
 import { FaShoppingBasket } from "react-icons/fa";
 import { FiMinus, FiPlus } from "react-icons/fi";
 import { MdOutlineArrowBack } from "react-icons/md";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Categories } from "../config/db";
+import { useCreatePaymentMutation } from "../services/apiPayment";
 import { useAppDispatch, useAppSelector } from "../store";
 import { decreaseQty, increaseQty, removeAllCart, removeFromCart } from "../store/CartSlice";
-import { useCreatePaymentMutation } from "../services/apiPayment";
-import { useCheckQuery } from "../services/apiAuth";
+import { ModalMetode } from "../components/ModalMetode";
+import { Loading } from "../components/Loading";
 
 const Cart: FC = () => {
     const navigate = useNavigate();
@@ -17,9 +18,9 @@ const Cart: FC = () => {
     const dispatch = useAppDispatch();
     const location = useLocation();
     const fromPage = location.state?.from;
-    const [createPayment] = useCreatePaymentMutation();
-    const {data: Check} = useCheckQuery();
-    const meja = Check?.user?.meja ?? '';
+    const [createPayment, { isLoading: isLoadingCreatePay }] = useCreatePaymentMutation();
+    const meja = useAppSelector(state => state.auth.meja ?? "");
+    const [showModal, setShowModal] = useState<boolean>(false);
 
     let totalAll = 0;
     const cartItems = cart.map(item => {
@@ -74,8 +75,27 @@ const Cart: FC = () => {
         );
     });
 
-    const handleCheckout = async () => {
+    const handleCash = async () => {
+        const confirm = window.confirm("Apakah kamu yakin menggunakan metode pembayaran cash?");
+        if (!confirm) return;
+
+        const res = await createPayment({
+            meja, 
+            items: cart, 
+            total: totalAll,
+            metode: "cash"
+        }).unwrap();
+
+        dispatch(removeAllCart());
+        setShowModal(false);
+        navigate(`/process/${res.orderId}`);
+    }
+
+    const handleTransfer = async () => {
         try {
+            const confirm = window.confirm("Apakah kamu yakin menggunakan metode pembayaran transfer?");
+            if (!confirm) return;
+
             if (!window.snap) {
                 alert("Midtrans Snap belum siap, coba refresh halaman");
                 return;
@@ -84,10 +104,12 @@ const Cart: FC = () => {
             const res = await createPayment({
                 meja, 
                 items: cart, 
-                total: totalAll
+                total: totalAll,
+                metode: "transfer"
             }).unwrap();
 
             dispatch(removeAllCart());
+            setShowModal(false);
 
             window.snap.pay(res.snapToken, {
                 onSuccess: function (result: any) {
@@ -100,9 +122,9 @@ const Cart: FC = () => {
                 onError: function () {
                     alert("Pembayaran gagal");
                 },
-                onClose: function () {
-                    alert("Popup ditutup tanpa menyelesaikan pembayaran");
-                },
+                // onClose: function () {
+                //     alert("Popup ditutup tanpa menyelesaikan pembayaran");
+                // },
             });
         } catch (error) {
             console.error("Checkout gagal:", error)
@@ -111,6 +133,7 @@ const Cart: FC = () => {
 
     return (
         <div className="sm:flex sm:justify-center">
+            {isLoadingCreatePay && <Loading />}
             <div className="sm:w-[400px] bg-main min-h-screen">
                 <div className="flex justify-between items-center p-3 cursor-pointer">
                     <div 
@@ -147,7 +170,7 @@ const Cart: FC = () => {
                                         <p className="text-xl font-bold text-sm text-white">{totalAll.toLocaleString("id-ID")}</p>
                                     </div>
                                     <button
-                                        onClick={handleCheckout}
+                                        onClick={() => setShowModal(true)}
                                         className="bg-white px-4 py-2 rounded-xl text-sm text-black font-semibold cursor-pointer"
                                     >
                                         Checkout
@@ -162,6 +185,12 @@ const Cart: FC = () => {
                         <p className="text-lg font-bold">Cart is Empty</p>
                     </div>
                 )}
+                {showModal && 
+                <ModalMetode 
+                    onClose={setShowModal} 
+                    handleCash={handleCash}
+                    handleTransfer={handleTransfer} 
+                />}
             </div>
         </div>
     )

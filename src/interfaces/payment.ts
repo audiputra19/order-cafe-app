@@ -8,6 +8,7 @@ export interface CreatePaymentRequest {
     meja: string;
     items: Items[];
     total: number;
+    metode: string;
 }
 
 export interface CreatePaymentResponse {
