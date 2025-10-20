@@ -1,8 +1,10 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { GetProductResponse, ProductProps } from "../interfaces/product";
+import type { GetProductResponse } from "../interfaces/product";
 
 export interface CartItem extends GetProductResponse {
   quantity: number;
+  type?: string;
+  note?: string;
 }
 
 interface CartState {
@@ -35,6 +37,19 @@ const CartSlice = createSlice({
                 state.items.push({ ...product, quantity });
             }
         },
+        addToCartWithTypeNote: (state, action: PayloadAction<{
+            productId: string, 
+            type?: string,
+            note?: string
+        }>) => {
+            const { productId, type, note } = action.payload;
+
+            const item = state.items.find(i => i.id === productId);
+            if(item) {
+                item.type = type;
+                item.note = note;
+            }
+        },
         increaseQty: (state, action: PayloadAction<string>) => {
             const item = state.items.find(i => i.id === action.payload);
             if (item) item.quantity += 1;
@@ -58,5 +73,5 @@ const CartSlice = createSlice({
     }
 });
 
-export const { addToCart, addToCartWithQty, increaseQty, decreaseQty, removeFromCart, removeAllCart } = CartSlice.actions;
+export const { addToCart, addToCartWithQty, addToCartWithTypeNote, increaseQty, decreaseQty, removeFromCart, removeAllCart } = CartSlice.actions;
 export default CartSlice.reducer;

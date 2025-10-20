@@ -1,16 +1,17 @@
 import clsx from "clsx";
-import { useState, type FC } from "react";
+import { useEffect, useState, type FC } from "react";
 import { FaShoppingBasket } from "react-icons/fa";
-import { FiMinus, FiPlus } from "react-icons/fi";
-import { MdOutlineArrowBack } from "react-icons/md";
-import { RiDeleteBin5Line } from "react-icons/ri";
+import { FiMinus, FiPlus, FiPlusCircle } from "react-icons/fi";
+import { MdOutlineArrowBack, MdOutlineStickyNote2 } from "react-icons/md";
+import { RiCloseCircleLine, RiDeleteBin5Line } from "react-icons/ri";
 import { useLocation, useNavigate } from "react-router-dom";
+import { BASE_URL } from "../components/BASE_URL";
+import { Loading } from "../components/Loading";
+import { ModalMetode } from "../components/ModalMetode";
 import { Categories } from "../config/db";
 import { useCreatePaymentMutation } from "../services/apiPayment";
 import { useAppDispatch, useAppSelector } from "../store";
-import { decreaseQty, increaseQty, removeAllCart, removeFromCart } from "../store/CartSlice";
-import { ModalMetode } from "../components/ModalMetode";
-import { Loading } from "../components/Loading";
+import { addToCartWithTypeNote, decreaseQty, increaseQty, removeAllCart, removeFromCart } from "../store/CartSlice";
 
 const Cart: FC = () => {
     const navigate = useNavigate();
@@ -21,6 +22,25 @@ const Cart: FC = () => {
     const [createPayment, { isLoading: isLoadingCreatePay }] = useCreatePaymentMutation();
     const meja = useAppSelector(state => state.auth.meja ?? "");
     const [showModal, setShowModal] = useState<boolean>(false);
+    const [drinkType, setDrinkType] = useState<{ [key: string]: string }>({});
+    const [notes, setNotes] = useState<{ [key: string]: { text: string; show: boolean } }>({});
+    const [isFirstLoad, setIsFirstLoad] = useState(true);
+    // console.log(cart);
+
+    useEffect(() => {
+        // Sync Redux ke local state form
+        const initialDrinkType: { [key: string]: string } = {};
+        const initialNotes: { [key: string]: { text: string; show: boolean } } = {};
+
+        cart.forEach(item => {
+            if (item.type) initialDrinkType[item.id] = item.type;
+            if (item.note) initialNotes[item.id] = { text: item.note, show: true };
+        });
+
+        setDrinkType(initialDrinkType);
+        setNotes(initialNotes);
+        setTimeout(() => setIsFirstLoad(false), 100);
+    }, [cart]);
 
     let totalAll = 0;
     const cartItems = cart.map(item => {
@@ -33,11 +53,11 @@ const Cart: FC = () => {
                 key={item.id}
                 className="p-3 border border-card bg-card2 rounded-xl"
             >
-                <div className="flex gap-3 items-center">
+                <div className="flex gap-3">
                     {/* <input type="checkbox" /> */}
                     <div>
                         <img 
-                            src={`http://localhost:3001${item.image_path}`}
+                            src={`${BASE_URL}${item.image_path}`}
                             className="w-25 h-25 object-cover rounded-xl border border-card p-1 border-card"
                         />
                     </div>
@@ -51,7 +71,108 @@ const Cart: FC = () => {
                                 onClick={() => dispatch(removeFromCart(item.id))}
                             />
                         </div>
-                        <div className="mt-5 flex justify-between items-center">
+                        {(item.kategori === 2 || item.kategori === 4) && (
+                            <div className="mt-3 flex gap-2">
+                                {["Hot", "Ice"].map(type => (
+                                    <label key={type} className="flex gap-1 items-center cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name={`drinkType-${item.id}`} // biar per-item
+                                            checked={drinkType[item.id] === type}
+                                            onChange={() => {
+                                                setDrinkType(prev => ({ ...prev, [item.id]: type }));
+                                                dispatch(addToCartWithTypeNote({
+                                                    productId: item.id,
+                                                    type,
+                                                    note: notes[item.id]?.text || ""
+                                                }));
+                                            }}
+                                            className="radio radio-xs"
+                                        />
+                                        <span className="text-xs">{type}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
+
+                        <div
+                            className={clsx(
+                                "relative mt-3 overflow-hidden transition-all duration-300 ease-in-out min-h-[30px]"
+                            )}
+                        >
+                            <button
+                                className={clsx(
+                                    "flex gap-1 items-center absolute left-0 text-xs text-blue-500 transition-all duration-300 hover:cursor-pointer hover:text-blue-600",
+                                    notes[item.id]?.show
+                                        ? "opacity-0 pointer-events-none"
+                                        : "opacity-100"
+                                )}
+                                onClick={() =>
+                                    setNotes(prev => ({
+                                        ...prev,
+                                        [item.id]: { text: "", show: true }
+                                    }))
+                                }
+                            >
+                                <FiPlusCircle size={17}/>
+                                Add Notes
+                            </button>
+
+                            <div
+                                className={clsx(
+                                    "absolute left-0 w-full transform",
+                                    !isFirstLoad && "transition-all duration-300 ease-in-out",
+                                    notes[item.id]?.show ? "translate-x-0" : "translate-x-full"
+                                )}
+                            >
+                                <div className="flex relative">
+                                    <div className="absolute top-[6px] left-[6px]">
+                                        <MdOutlineStickyNote2 size={18} className="text-gray-500" />
+                                    </div>
+                                    {notes[item.id]?.text && (
+                                        <div className="absolute top-[6px] right-[6px]">
+                                            <RiCloseCircleLine
+                                            size={18}
+                                            className="text-gray-500 cursor-pointer"
+                                                onClick={() => {
+                                                    setNotes(prev => ({
+                                                        ...prev,
+                                                        [item.id]: { text: "", show: true }
+                                                    }));
+                                                    dispatch(addToCartWithTypeNote({
+                                                        productId: item.id,
+                                                        type: drinkType[item.id] || "",
+                                                        note: ""
+                                                    }));
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                    <input
+                                        type="text"
+                                        className={clsx(
+                                            "w-full focus:outline-none focus:outline-2 py-1 px-8 text-sm placeholder-gray-400 border border-card bg-secondary rounded",
+                                            notes[item.id]?.text ? "" : "pl-8 pr-2"
+                                        )}
+                                        placeholder="Contoh: Agak pedas"
+                                        value={notes[item.id]?.text || ""}
+                                        onChange={(e) => {
+                                            const noteText = e.target.value;
+                                            setNotes(prev => ({
+                                                ...prev,
+                                                [item.id]: { text: e.target.value, show: true }
+                                            }));
+                                            dispatch(addToCartWithTypeNote({
+                                                productId: item.id,
+                                                type: drinkType[item.id] || "",
+                                                note: noteText
+                                            }));
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="mt-3 flex justify-between items-center">
                             <p className="font-semibold text-primary">{totalQty.toLocaleString("id-ID")}</p>
                             <div className="flex items-center">
                                 <button
@@ -81,7 +202,11 @@ const Cart: FC = () => {
 
         const res = await createPayment({
             meja, 
-            items: cart, 
+            items: cart.map(item => ({
+                ...item,
+                drinkType: drinkType[item.id] || null,
+                note: notes[item.id]?.text || null
+            })),
             total: totalAll,
             metode: "cash"
         }).unwrap();
@@ -103,7 +228,11 @@ const Cart: FC = () => {
 
             const res = await createPayment({
                 meja, 
-                items: cart, 
+                items: cart.map(item => ({
+                    ...item,
+                    drinkType: drinkType[item.id] || null,
+                    note: notes[item.id]?.text || null
+                })), 
                 total: totalAll,
                 metode: "transfer"
             }).unwrap();
@@ -113,7 +242,7 @@ const Cart: FC = () => {
 
             window.snap.pay(res.snapToken, {
                 onSuccess: function (result: any) {
-                    // console.log("Pembayaran sukses:", result);
+                    console.log("Pembayaran sukses:", result);
                     navigate(`/process/${res.orderId}`);
                 },
                 onPending: function (result: any) {
@@ -170,7 +299,8 @@ const Cart: FC = () => {
                                         <p className="text-xl font-bold text-sm text-white">{totalAll.toLocaleString("id-ID")}</p>
                                     </div>
                                     <button
-                                        onClick={() => setShowModal(true)}
+                                        // onClick={() => setShowModal(true)}
+                                        onClick={() => navigate('/confirm')}
                                         className="bg-white px-4 py-2 rounded-xl text-sm text-black font-semibold cursor-pointer"
                                     >
                                         Checkout

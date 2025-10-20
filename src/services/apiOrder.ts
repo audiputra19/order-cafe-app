@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { baseQuery } from './baseQuery'
-import type { FinishOrderRequest, FinishOrderResponse, GetOrderItemsRequest, GetOrderItemsResponse, GetOrderRequest, GetOrderResponse, GetTotalOrderByIdResponse } from "../interfaces/order";
+import type { FinishOrderRequest, FinishOrderResponse, GetOrderItemsResponse, GetOrderResponse, GetTotalOrderByIdResponse } from "../interfaces/order";
+import { baseQuery } from './baseQuery';
 
 export const apiOrder = createApi({
     reducerPath: 'apiOrder',
@@ -22,19 +22,19 @@ export const apiOrder = createApi({
             }),
             invalidatesTags: ["Order"]
         }),
-        getOrderItems: builder.query<GetOrderItemsResponse[], GetOrderItemsRequest>({
-            query: (body) => ({
+        getOrderItems: builder.query<GetOrderItemsResponse[], string>({
+            query: (order_id) => ({
                 url: 'order/get-order-items',
                 method: 'POST',
-                body
+                body: { order_id }
             }),
             providesTags: ["Order"]
         }),
-        getOrderById: builder.query<GetOrderResponse, GetOrderRequest>({
-            query: (body) => ({
+        getOrderById: builder.query<GetOrderResponse, string>({
+            query: (order_id) => ({
                 url: 'order/get-orderbyid',
                 method: 'POST',
-                body
+                body: { order_id }
             }),
             providesTags: ["Order"]
         }),

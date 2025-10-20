@@ -1,14 +1,14 @@
+import clsx from "clsx";
 import { useState, type FC } from "react";
+import { FiMinus, FiPlus } from "react-icons/fi";
 import { MdOutlineArrowBack } from "react-icons/md";
 import { RiShoppingBag4Line } from "react-icons/ri";
 import { useNavigate, useParams } from "react-router-dom";
-import { Products } from "../config/db";
-import { useAppDispatch, useAppSelector } from "../store";
-import clsx from "clsx";
-import { FiMinus, FiPlus } from "react-icons/fi";
-import { addToCartWithQty } from "../store/CartSlice";
 import { useCartIcon } from "../contexts/CartIconContext";
 import { useGetProductQuery } from "../services/apiProduct";
+import { useAppDispatch, useAppSelector } from "../store";
+import { addToCartWithQty } from "../store/CartSlice";
+import { BASE_URL } from "../components/BASE_URL";
 
 const Detail: FC = () => {
     const navigate = useNavigate();
@@ -23,7 +23,7 @@ const Detail: FC = () => {
     const dispatch = useAppDispatch();
     const cartRef = useCartIcon();
 
-    const handleAddToCart = (e: React.MouseEvent, item: any) => {
+    const handleAddToCart = (item: any) => {
         if (selectedProduct) {
             dispatch(addToCartWithQty({ product: item, quantity: qty }));
         }
@@ -110,7 +110,7 @@ const Detail: FC = () => {
                                 </div>
                             </div>
                             <img 
-                                src={`http://localhost:3001${selectedProduct?.image_path}`}
+                                src={`${BASE_URL}${selectedProduct?.image_path}`}
                                 alt={selectedProduct?.nama}
                                 className="detail-product-img w-full h-[350px] object-cover bg-card"
                             />
@@ -150,7 +150,7 @@ const Detail: FC = () => {
                                 </div>
                                 <button
                                     className="flex-1 bg-primary p-3 rounded-full text-white font-semibold cursor-pointer"
-                                    onClick={(e) => handleAddToCart(e, selectedProduct)}
+                                    onClick={() => handleAddToCart(selectedProduct)}
                                 >
                                     Add to Cart
                                 </button>

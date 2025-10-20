@@ -14,6 +14,7 @@ import { useGetProductQuery } from "../services/apiProduct";
 import { useAppDispatch } from "../store";
 import { addToCart } from "../store/CartSlice";
 import { useGetCompanyProfileQuery } from "../services/apiProfile";
+import { BASE_URL } from "../components/BASE_URL";
 
 const Home: FC = () => {
     const [open, setOpen] = useState<boolean>(false);
@@ -27,14 +28,17 @@ const Home: FC = () => {
     const {data: Products = [], isLoading: isLoadingProd, isError, refetch} = useGetProductQuery(undefined, {
         refetchOnReconnect: true,
         refetchOnFocus: true,
+        refetchOnMountOrArgChange: true,
     });
     const {data: getTotalOrder = []} = useGetTotalOrderByIdQuery(undefined, {
         refetchOnReconnect: true,
         refetchOnFocus: true,
+        refetchOnMountOrArgChange: true,
     });
     const {data: getCompanyProfile} = useGetCompanyProfileQuery(undefined, {
         refetchOnReconnect: true,
         refetchOnFocus: true,
+        refetchOnMountOrArgChange: true,
     })
 
     const handleAddToCart = (e: React.MouseEvent, item: any) => {
@@ -126,14 +130,14 @@ const Home: FC = () => {
                 onClick={() => navigate(`/detail/${item.id}`)}
             >
                 <img 
-                    src={`http://localhost:3001${item.image_path}`}
+                    src={`${BASE_URL}${item.image_path}`}
                     alt={item.image_title}
                     className="w-full h-[150px] rounded-lg object-cover"
                 />
                 <div className="p-2">
                     <p className="font-semibold line-clamp-1">{item.nama}</p>
                     <p className="text-sm text-gray-400">{categoryProduct?.name}</p>
-                    <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center gap-1 mt-2">
                         <LuClipboardCheck size={16}/>
                         <p className="text-xs">{orderCount} Order</p>
                     </div>
@@ -160,10 +164,10 @@ const Home: FC = () => {
         <>
             <div className="bg-main min-h-screen">
                 <div className="p-3 flex justify-between">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                         {getCompanyProfile ? (
                             <img 
-                                src={`http://localhost:3001${getCompanyProfile.image_path}`}
+                                src={`${BASE_URL}${getCompanyProfile.image_path}`}
                                 alt={getCompanyProfile.image_title} 
                                 className="w-[35px] rounded-full"
                             />

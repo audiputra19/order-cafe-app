@@ -10,6 +10,8 @@ import { WarningToScan } from "../pages/WarningToScan";
 import { ProtectedRoute } from "./ProtectedRoute";
 import Process from "../pages/Process";
 import Transaction from "../pages/Transaction";
+import PaymentMethod from "../pages/PaymentMethod";
+import Confirm from "../pages/Confirm";
 
 const ScrollToTop: FC<{ children: React.ReactNode }> = ({ children }) => {
   const { pathname } = useLocation();
@@ -60,6 +62,14 @@ const Router: FC = () => {
         {
             path: '/process/:orderID',
             element: <ProtectedRoute><Process /></ProtectedRoute>
+        },
+        {
+            path: '/payment',
+            element: <ProtectedRoute><PaymentMethod /></ProtectedRoute>
+        },
+        {
+            path: '/confirm',
+            element: <ProtectedRoute><Confirm /></ProtectedRoute>
         }
     ];
 

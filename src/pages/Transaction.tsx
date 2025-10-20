@@ -3,29 +3,26 @@ import moment from "moment";
 import { useEffect, type FC } from "react";
 import { MdMoneyOff, MdOutlineArrowBack } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-import { useGetOrderQuery } from "../services/apiOrder";
+import { apiOrder, useGetOrderQuery } from "../services/apiOrder";
 import { socket } from "../socket";
 import { useAppSelector } from "../store";
+import { useDispatch } from "react-redux";
 
 const Transaction: FC = () => {
     const meja = useAppSelector(state => state.auth.meja) ?? "";
-    const { data: getTransaction = [], isError, refetch, isLoading: isloadingTransaction } = useGetOrderQuery(meja, {
+    const { data: getTransaction = [], isLoading: isloadingTransaction } = useGetOrderQuery(meja, {
         refetchOnReconnect: true,
         refetchOnFocus: true,
+        refetchOnMountOrArgChange: true
     });
     const navigate = useNavigate();
-
-    useEffect(() => {
-        if(isError) {
-            refetch();
-        }
-    }, [isError, refetch])
+    const dispatch = useDispatch();
 
     useEffect(() => {
         socket.on("order:update", () => {
-            refetch();
+            dispatch(apiOrder.util.invalidateTags(["Order"]));
         })
-    }, [refetch]);
+    }, [dispatch]);
 
     const handlePayAgain = (snapToken: string, orderId: string) => {
         if (!window.snap) {
@@ -35,6 +32,7 @@ const Transaction: FC = () => {
 
         window.snap.pay(snapToken, {
             onSuccess: function (result: any) {
+                console.log("Pembayaran sukses:", result);
                 navigate(`/process/${orderId}`);
             },
             onPending: function (result: any) {
@@ -66,7 +64,7 @@ const Transaction: FC = () => {
                         <MdOutlineArrowBack size={25}/>
                     </div>
                 </div>
-                <div className="p-5">
+                <div className="p-3">
                     <div className="flex flex-col gap-3">
                         
                         {/* Loading Screen */}
@@ -98,19 +96,19 @@ const Transaction: FC = () => {
                                             </div>
                                             <div>
                                                 {item.status === 'unpaid' && item.metode !== 'cash' ? (
-                                                    <div 
+                                                    <button 
                                                         className={clsx("py-2 px-3 text-xs rounded-xl bg-yellow-500 text-white font-semibold cursor-pointer")}
                                                         onClick={() => handlePayAgain(item.snap_token, item.order_id)}
                                                     >
                                                         Bayar
-                                                    </div>
+                                                    </button>
                                                 ) : (
-                                                    <div 
+                                                    <button 
                                                         className={clsx("py-2 px-3 text-xs rounded-xl bg-primary text-white font-semibold cursor-pointer")}
                                                         onClick={() => navigate(`/process/${item.order_id}`)}
                                                     >
                                                         Cek
-                                                    </div>
+                                                    </button>
                                                 )}
                                             </div>
                                         </div>

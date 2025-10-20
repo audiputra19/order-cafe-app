@@ -1,24 +1,33 @@
 import { useEffect, useState, type FC } from "react";
 import { FaMoneyBillTransfer } from "react-icons/fa6";
 import { IoFastFoodOutline } from "react-icons/io5";
-import { LuClipboardCheck, LuInfo } from "react-icons/lu";
+import { LuCheckCheck, LuClipboardCheck, LuInfo } from "react-icons/lu";
 import { MdOutlineArrowBack } from "react-icons/md";
 import { PiChefHat } from "react-icons/pi";
 import { RiProgress3Line } from "react-icons/ri";
 import { useNavigate, useParams } from "react-router-dom";
 import { ModalCancel } from "../components/ModalCancel";
-import { useFinishOrderMutation, useGetOrderByIdQuery, useGetOrderItemsQuery } from "../services/apiOrder";
+import { apiOrder, useFinishOrderMutation, useGetOrderByIdQuery, useGetOrderItemsQuery } from "../services/apiOrder";
 import { socket } from "../socket";
+import { useDispatch } from "react-redux";
 
 const Process: FC = () => {
   const { orderID = "" } = useParams<{ orderID: string }>();
+  // console.log("order id: ", orderID);
   const navigate = useNavigate();
-  const { data: getOrder, isLoading: isLoadingOrder, refetch: refetchOrder, isError: isErrorOrder } = useGetOrderByIdQuery({ order_id: orderID });
-  const { data: getOrderItems = [], isLoading: isLoadingOrderItems, refetch: refetchOrderItems, isError: isErrorOrderItems } = useGetOrderItemsQuery({ order_id: orderID });
+  const { data: getOrder, isLoading: isLoadingOrder } = useGetOrderByIdQuery(orderID, {
+    skip: !orderID,
+    refetchOnMountOrArgChange: true,
+  });
+  const { data: getOrderItems = [], isLoading: isLoadingOrderItems } = useGetOrderItemsQuery(orderID, {
+    skip: !orderID,
+    refetchOnMountOrArgChange: true,
+  });
   const [finish, {isLoading: isLoadingFinish}] = useFinishOrderMutation();
-  const [email, setEmail] = useState("");
+  // const [email, setEmail] = useState("");
   const [showModalCancel, setShowModalCancel] = useState(false);
   const [agreeToCancel, setAgreeToCancel] = useState(false);
+  const dispatch = useDispatch();
   let totalAll = 0;
 
   const baseSteps = [
@@ -59,47 +68,35 @@ const Process: FC = () => {
   const steps = getOrder?.status === "paid" ? baseSteps : [waitingStep, ...baseSteps];
 
   useEffect(() => {
-    if(isErrorOrder || isErrorOrderItems) {
-      refetchOrder();
-      refetchOrderItems();
-    } 
-  }, [isErrorOrder, isErrorOrderItems, refetchOrder, refetchOrderItems])
-
-  useEffect(() => {
     if(agreeToCancel){
       navigate('/')
     }
   },[agreeToCancel])
 
   useEffect(() => {
-    socket.on("order:update", () => {
-      refetchOrder();
-      refetchOrderItems();
-    });
+    const onUpdate = () => {
+      dispatch(apiOrder.util.invalidateTags(["Order"]));
+    };
 
-    socket.on("order:cancel", (data) => {
-      // console.log("menerima data socket", data);
+    const onCancel = (data: any) => {
       if (data.order_id === orderID) {
         setShowModalCancel(true);
+        dispatch(apiOrder.util.invalidateTags(["Order"]));
       }
-    });
+    };
+
+    socket.on("order:update", onUpdate);
+    socket.on("order:cancel", onCancel);
 
     return () => {
-      socket.off("order:update");
-      socket.off("order:cancel");
+      socket.off("order:update", onUpdate);
+      socket.off("order:cancel", onCancel);
     };
-  }, [orderID, refetchOrder, refetchOrderItems]);
+  }, [orderID]);
 
   const handleFinish = async (order_id: string) => {
-    const dialog = (email === "") 
-    ? "Apakah anda yakin tidak mau print out bukti pembayaran?" 
-    : "Bukti pembayaran akan masuk ke email anda, selesaikan pesanan?"
-    const confirm = window.confirm(dialog);
-    if(!confirm) return;
-
     await finish({ order_id });
-    refetchOrder();
-    refetchOrderItems();
+    dispatch(apiOrder.util.invalidateTags(["Order"]));
   };
 
   return (
@@ -193,7 +190,7 @@ const Process: FC = () => {
                                       : "bg-gray-300 ring-gray-200 text-black"
                                   }`}
                                   >
-                                  {isCompleted || (isActive && step.name === "done") ? "✔" : icon}
+                                  {isCompleted || (isActive && step.name === "done") ? <LuCheckCheck size={20} /> : icon}
                                   {isActive && step.name !== "done" && (
                                       <span className="absolute h-8 w-8 rounded-full border-2 border-primary animate-ping" />
                                   )}
@@ -237,7 +234,7 @@ const Process: FC = () => {
                               return (
                                   <div key={i} className="flex justify-between items-center">
                                       <div
-                                          className="text-gray-400 text-sm"
+                                          className="text-gray-400 text-sm max-w-[230px]"
                                       >
                                           {item.nama} ({Number(item.harga).toLocaleString("id-ID")})
                                           <span className="ml-1 text-primary">{`+${item.qty}`}</span>
@@ -259,7 +256,7 @@ const Process: FC = () => {
                   {getOrder?.proses === 'ready' && (
                     <div className="mt-5">
                       <div className="flex flex-col gap-3">
-                        <div>
+                        {/* <div>
                           <input
                               type="text"
                               className="w-full focus:outline-none focus:outline-2 py-2 px-3 text-sm placeholder-gray-400 border border-card bg-card2 rounded-xl"
@@ -270,7 +267,7 @@ const Process: FC = () => {
                             <LuInfo />
                             <p className="text-xs">Masukan email untuk print out total pembelian</p>
                           </div>
-                        </div>
+                        </div> */}
                         <button 
                           className="bg-green-500 p-3 rounded-xl text-white font-semibold cursor-pointer"
                           onClick={() => handleFinish(orderID)}

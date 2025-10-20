@@ -1,9 +1,8 @@
 import clsx from "clsx";
 import { useEffect, useState, type Dispatch, type FC, type SetStateAction } from "react";
-import { FiFilter } from "react-icons/fi";
-import { Categories } from "../config/db";
 import { LuSearch, LuSettings2 } from "react-icons/lu";
 import { RiCloseCircleLine } from "react-icons/ri";
+import { Categories } from "../config/db";
 
 interface Props {
     setOpen: Dispatch<SetStateAction<boolean>>;

@@ -1,5 +1,4 @@
 import type { Dispatch, FC, SetStateAction } from "react";
-import { MdClose } from "react-icons/md";
 
 interface Props {
     onClose: Dispatch<SetStateAction<boolean>>,
