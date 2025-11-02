@@ -7,7 +7,8 @@ export interface Items {
 export interface CreatePaymentRequest {
     meja: string;
     items: Items[];
-    total: number;
+    subTotal: number;
+    voucher_id?: string | null;
     metode: string;
 }
 

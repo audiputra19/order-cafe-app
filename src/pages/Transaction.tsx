@@ -58,7 +58,7 @@ const Transaction: FC = () => {
                         <MdOutlineArrowBack size={25}/>
                     </div>
                     <div>
-                        <p className="text-lg font-bold px-5 py-1 bg-card2 rounded-full">Transaction</p>
+                        <p className="text-lg font-bold px-5 py-1 bg-card2 rounded-full">Transaksi</p>
                     </div>
                     <div className="text-main p-2 rounded-full bg-main">
                         <MdOutlineArrowBack size={25}/>

@@ -12,6 +12,7 @@ import Process from "../pages/Process";
 import Transaction from "../pages/Transaction";
 import PaymentMethod from "../pages/PaymentMethod";
 import Confirm from "../pages/Confirm";
+import Voucher from "../pages/Voucher";
 
 const ScrollToTop: FC<{ children: React.ReactNode }> = ({ children }) => {
   const { pathname } = useLocation();
@@ -70,6 +71,10 @@ const Router: FC = () => {
         {
             path: '/confirm',
             element: <ProtectedRoute><Confirm /></ProtectedRoute>
+        },
+        {
+            path: '/voucher',
+            element: <ProtectedRoute><Voucher /></ProtectedRoute>
         }
     ];
 

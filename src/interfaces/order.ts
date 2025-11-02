@@ -37,3 +37,17 @@ export interface GetTotalOrderByIdResponse {
     qty: number;
     message?: string;
 }
+
+export interface GetTimeProcessResponse {
+    order_id: string;
+    paid: string;
+    acc_kasir: string;
+    acc_dapur: string;
+    ready: string;
+    done: string;
+    cancel: string;
+}
+
+export interface GetTimeProcessRequest {
+    order_id: string;
+}

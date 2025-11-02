@@ -6,12 +6,9 @@ import { MdOutlineArrowBack, MdOutlineStickyNote2 } from "react-icons/md";
 import { RiCloseCircleLine, RiDeleteBin5Line } from "react-icons/ri";
 import { useLocation, useNavigate } from "react-router-dom";
 import { BASE_URL } from "../components/BASE_URL";
-import { Loading } from "../components/Loading";
-import { ModalMetode } from "../components/ModalMetode";
 import { Categories } from "../config/db";
-import { useCreatePaymentMutation } from "../services/apiPayment";
 import { useAppDispatch, useAppSelector } from "../store";
-import { addToCartWithTypeNote, decreaseQty, increaseQty, removeAllCart, removeFromCart } from "../store/CartSlice";
+import { addToCartWithTypeNote, decreaseQty, increaseQty, removeFromCart, setVoucher } from "../store/CartSlice";
 
 const Cart: FC = () => {
     const navigate = useNavigate();
@@ -19,13 +16,13 @@ const Cart: FC = () => {
     const dispatch = useAppDispatch();
     const location = useLocation();
     const fromPage = location.state?.from;
-    const [createPayment, { isLoading: isLoadingCreatePay }] = useCreatePaymentMutation();
-    const meja = useAppSelector(state => state.auth.meja ?? "");
-    const [showModal, setShowModal] = useState<boolean>(false);
     const [drinkType, setDrinkType] = useState<{ [key: string]: string }>({});
     const [notes, setNotes] = useState<{ [key: string]: { text: string; show: boolean } }>({});
     const [isFirstLoad, setIsFirstLoad] = useState(true);
-    // console.log(cart);
+
+    useEffect(() => {
+        dispatch(setVoucher(0));
+    }, [dispatch]);
 
     useEffect(() => {
         // Sync Redux ke local state form
@@ -33,7 +30,7 @@ const Cart: FC = () => {
         const initialNotes: { [key: string]: { text: string; show: boolean } } = {};
 
         cart.forEach(item => {
-            if (item.type) initialDrinkType[item.id] = item.type;
+            if (item.drinkType) initialDrinkType[item.id] = item.drinkType;
             if (item.note) initialNotes[item.id] = { text: item.note, show: true };
         });
 
@@ -83,13 +80,13 @@ const Cart: FC = () => {
                                                 setDrinkType(prev => ({ ...prev, [item.id]: type }));
                                                 dispatch(addToCartWithTypeNote({
                                                     productId: item.id,
-                                                    type,
+                                                    drinkType: type,
                                                     note: notes[item.id]?.text || ""
                                                 }));
                                             }}
                                             className="radio radio-xs"
                                         />
-                                        <span className="text-xs">{type}</span>
+                                        <span className="text-sm">{type}</span>
                                     </label>
                                 ))}
                             </div>
@@ -102,7 +99,7 @@ const Cart: FC = () => {
                         >
                             <button
                                 className={clsx(
-                                    "flex gap-1 items-center absolute left-0 text-xs text-blue-500 transition-all duration-300 hover:cursor-pointer hover:text-blue-600",
+                                    "flex gap-1 items-center absolute left-0 text-sm text-blue-500 transition-all duration-300 hover:cursor-pointer hover:text-blue-600",
                                     notes[item.id]?.show
                                         ? "opacity-0 pointer-events-none"
                                         : "opacity-100"
@@ -115,7 +112,7 @@ const Cart: FC = () => {
                                 }
                             >
                                 <FiPlusCircle size={17}/>
-                                Add Notes
+                                Tambah Catatan
                             </button>
 
                             <div
@@ -141,7 +138,7 @@ const Cart: FC = () => {
                                                     }));
                                                     dispatch(addToCartWithTypeNote({
                                                         productId: item.id,
-                                                        type: drinkType[item.id] || "",
+                                                        drinkType: drinkType[item.id] || "",
                                                         note: ""
                                                     }));
                                                 }}
@@ -164,7 +161,7 @@ const Cart: FC = () => {
                                             }));
                                             dispatch(addToCartWithTypeNote({
                                                 productId: item.id,
-                                                type: drinkType[item.id] || "",
+                                                drinkType: drinkType[item.id] || "",
                                                 note: noteText
                                             }));
                                         }}
@@ -196,73 +193,19 @@ const Cart: FC = () => {
         );
     });
 
-    const handleCash = async () => {
-        const confirm = window.confirm("Apakah kamu yakin menggunakan metode pembayaran cash?");
-        if (!confirm) return;
-
-        const res = await createPayment({
-            meja, 
-            items: cart.map(item => ({
-                ...item,
-                drinkType: drinkType[item.id] || null,
-                note: notes[item.id]?.text || null
-            })),
-            total: totalAll,
-            metode: "cash"
-        }).unwrap();
-
-        dispatch(removeAllCart());
-        setShowModal(false);
-        navigate(`/process/${res.orderId}`);
-    }
-
-    const handleTransfer = async () => {
-        try {
-            const confirm = window.confirm("Apakah kamu yakin menggunakan metode pembayaran transfer?");
-            if (!confirm) return;
-
-            if (!window.snap) {
-                alert("Midtrans Snap belum siap, coba refresh halaman");
+    const handleCheckout = () => {
+        for (const item of cart) {
+            if ((item.kategori === 2 || item.kategori === 4) && !drinkType[item.id]) {
+                alert(`Tolong pilih Hot/Ice untuk ${item.nama}`);
                 return;
             }
-
-            const res = await createPayment({
-                meja, 
-                items: cart.map(item => ({
-                    ...item,
-                    drinkType: drinkType[item.id] || null,
-                    note: notes[item.id]?.text || null
-                })), 
-                total: totalAll,
-                metode: "transfer"
-            }).unwrap();
-
-            dispatch(removeAllCart());
-            setShowModal(false);
-
-            window.snap.pay(res.snapToken, {
-                onSuccess: function (result: any) {
-                    console.log("Pembayaran sukses:", result);
-                    navigate(`/process/${res.orderId}`);
-                },
-                onPending: function (result: any) {
-                    console.log("Menunggu pembayaran:", result);
-                },
-                onError: function () {
-                    alert("Pembayaran gagal");
-                },
-                // onClose: function () {
-                //     alert("Popup ditutup tanpa menyelesaikan pembayaran");
-                // },
-            });
-        } catch (error) {
-            console.error("Checkout gagal:", error)
         }
+
+        navigate('/confirm');
     }
 
     return (
         <div className="sm:flex sm:justify-center">
-            {isLoadingCreatePay && <Loading />}
             <div className="sm:w-[400px] bg-main min-h-screen">
                 <div className="flex justify-between items-center p-3 cursor-pointer">
                     <div 
@@ -276,7 +219,7 @@ const Cart: FC = () => {
                         <MdOutlineArrowBack size={25}/>
                     </div>
                     <div>
-                        <p className="text-lg font-bold px-5 py-1 bg-card2 rounded-full">Cart</p>
+                        <p className="text-lg font-bold px-5 py-1 bg-card2 rounded-full">Keranjang</p>
                     </div>
                     <div className="text-main p-2 rounded-full bg-main">
                         <MdOutlineArrowBack size={25}/>
@@ -285,7 +228,7 @@ const Cart: FC = () => {
                 {cartItems.length > 0 ? (
                     <>
                         <div className={clsx("flex flex-col gap-3 p-3",
-                            fromPage === 'tab-cart' ? 'pb-[90px]' : 'pb-[92px]'
+                            fromPage === 'tab-cart' ? 'pb-[94px]' : 'pb-[96px]'
                         )}>
                             {cartItems}
                         </div>
@@ -295,12 +238,12 @@ const Cart: FC = () => {
                             <div className="bg-primary p-3 rounded-xl shadow-lg">
                                 <div className="flex justify-between items-center">
                                     <div className="flex flex-col">
-                                        <p className="text-xs font-bold text-white">Total Price</p>
+                                        <p className="text-sm font-bold text-white">Total Harga</p>
                                         <p className="text-xl font-bold text-sm text-white">{totalAll.toLocaleString("id-ID")}</p>
                                     </div>
                                     <button
                                         // onClick={() => setShowModal(true)}
-                                        onClick={() => navigate('/confirm')}
+                                        onClick={handleCheckout}
                                         className="bg-white px-4 py-2 rounded-xl text-sm text-black font-semibold cursor-pointer"
                                     >
                                         Checkout
@@ -312,15 +255,9 @@ const Cart: FC = () => {
                 ) : (
                     <div className="flex flex-col justify-center items-center text-gray-400 mt-10">
                         <FaShoppingBasket size={96}/>
-                        <p className="text-lg font-bold">Cart is Empty</p>
+                        <p className="text-lg font-bold">Keranjang Kosong</p>
                     </div>
                 )}
-                {showModal && 
-                <ModalMetode 
-                    onClose={setShowModal} 
-                    handleCash={handleCash}
-                    handleTransfer={handleTransfer} 
-                />}
             </div>
         </div>
     )

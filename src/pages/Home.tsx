@@ -257,12 +257,21 @@ const Home: FC = () => {
                     <div className="p-4 space-y-3">
                         <div 
                             onClick={() => {
+                                setSortType("terlaris");
+                                setOpen(false);
+                            }}
+                            className="p-3 rounded-lg bg-card cursor-pointer"
+                        >
+                            Best Seller
+                        </div>
+                        <div 
+                            onClick={() => {
                                 setSortType("termurah");
                                 setOpen(false);
                             }}
                             className="p-3 rounded-lg bg-card cursor-pointer"
                         >
-                            Termurah
+                            Paling Murah
                         </div>
                         <div
                             onClick={() => {
@@ -271,16 +280,7 @@ const Home: FC = () => {
                             }} 
                             className="p-3 rounded-lg bg-card cursor-pointer"
                         >
-                            Termahal
-                        </div>
-                        <div 
-                            onClick={() => {
-                                setSortType("terlaris");
-                                setOpen(false);
-                            }}
-                            className="p-3 rounded-lg bg-card cursor-pointer"
-                        >
-                            Terlaris
+                            Paling Mahal
                         </div>
                     </div>
                 </div>

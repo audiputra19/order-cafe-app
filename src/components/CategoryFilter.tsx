@@ -86,7 +86,7 @@ const CategoryFilter: FC<Props> = ({ setOpen, selectCategory, setSelectCategory,
                     )}
                     onClick={() => setSelectCategory(0)}
                 >
-                    <p>All</p>
+                    <p>Semua</p>
                 </div>
                 {categoryList}
             </div>

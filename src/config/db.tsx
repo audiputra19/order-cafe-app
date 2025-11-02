@@ -12,12 +12,12 @@ interface Categories {
 export const Categories: Categories[] = [
     {
         id: 1,
-        name: 'Food',
+        name: 'Makanan',
         icon: <PiBowlFood size={18} />
     },
     {
         id: 2,
-        name: 'Beverages',
+        name: 'Minuman',
         icon: <RiDrinks2Line size={18} />
     },
     {
@@ -27,7 +27,7 @@ export const Categories: Categories[] = [
     },
     {
         id: 4,
-        name: 'Coffee',
+        name: 'Kopi',
         icon: <PiCoffeeBean size={18} />
     }
 ];

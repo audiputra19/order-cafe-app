@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useAppSelector } from "../store";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { removeAllCart } from "../store/CartSlice";
 
 interface TokenPayload {
     exp: number;
@@ -11,6 +13,7 @@ const HeaderBar = () => {
     const [countdown, setCountdown] = useState<number>(0);
     const meja = useAppSelector((state) => state.auth.meja);
     const token = useAppSelector((state) => state.auth.token);
+    const dispatch = useDispatch();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -25,6 +28,8 @@ const HeaderBar = () => {
             setCountdown(remaining > 0 ? remaining : 0);
 
             if (remaining <= 0) {
+                dispatch(removeAllCart());
+                sessionStorage.removeItem("confirmScrollY");
                 navigate("/warning-scan");
             }
         };

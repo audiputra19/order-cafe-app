@@ -3,16 +3,24 @@ import type { GetProductResponse } from "../interfaces/product";
 
 export interface CartItem extends GetProductResponse {
   quantity: number;
-  type?: string;
+  drinkType?: string;
   note?: string;
 }
 
 interface CartState {
-    items: CartItem[]
+    items: CartItem[];
+    paymentMethod?: number;
+    voucher?: number;
+    voucherId?: string;
+    voucherManual?: boolean;
 }
 
 const initialState: CartState = {
-    items: []
+    items: [],
+    paymentMethod: undefined,
+    voucher: 0,
+    voucherId: "",
+    voucherManual: false,
 }
 
 const CartSlice = createSlice({
@@ -39,16 +47,26 @@ const CartSlice = createSlice({
         },
         addToCartWithTypeNote: (state, action: PayloadAction<{
             productId: string, 
-            type?: string,
+            drinkType?: string,
             note?: string
         }>) => {
-            const { productId, type, note } = action.payload;
+            const { productId, drinkType, note } = action.payload;
 
             const item = state.items.find(i => i.id === productId);
             if(item) {
-                item.type = type;
+                item.drinkType = drinkType;
                 item.note = note;
             }
+        },
+        setPaymentMethod: (state, action: PayloadAction<number>) => {
+            state.paymentMethod = action.payload;
+        },
+        setVoucher(state, action: PayloadAction<number>) {
+            state.voucher = action.payload;
+            state.voucherManual = true;
+        },
+        setVoucherId(state, action: PayloadAction<string>) {
+            state.voucherId = action.payload;
         },
         increaseQty: (state, action: PayloadAction<string>) => {
             const item = state.items.find(i => i.id === action.payload);
@@ -69,9 +87,13 @@ const CartSlice = createSlice({
         },
         removeAllCart: (state) => {
             state.items = [];
+            state.paymentMethod = undefined;
+            state.voucher = 0;
+            state.voucherManual = false;
         }
     }
 });
 
-export const { addToCart, addToCartWithQty, addToCartWithTypeNote, increaseQty, decreaseQty, removeFromCart, removeAllCart } = CartSlice.actions;
+export const { addToCart, addToCartWithQty, addToCartWithTypeNote, setPaymentMethod, setVoucher, 
+    setVoucherId, increaseQty, decreaseQty, removeFromCart, removeAllCart } = CartSlice.actions;
 export default CartSlice.reducer;

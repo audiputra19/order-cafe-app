@@ -1,5 +1,5 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import type { FinishOrderRequest, FinishOrderResponse, GetOrderItemsResponse, GetOrderResponse, GetTotalOrderByIdResponse } from "../interfaces/order";
+import type { FinishOrderRequest, FinishOrderResponse, GetOrderItemsResponse, GetOrderResponse, GetTimeProcessResponse, GetTotalOrderByIdResponse } from "../interfaces/order";
 import { baseQuery } from './baseQuery';
 
 export const apiOrder = createApi({
@@ -43,10 +43,18 @@ export const apiOrder = createApi({
                 url: 'order/get-total-orderbyid',
                 method: 'GET'
             })
-        })
+        }),
+        getTimeProcessById: builder.query<GetTimeProcessResponse, string>({
+            query: (order_id) => ({
+                url: 'order/get-time-process',
+                method: 'POST',
+                body: { order_id }
+            }),
+            providesTags: ["Order"]
+        }),
     })
 })
 
 export const { useGetOrderQuery, useFinishOrderMutation, useGetOrderItemsQuery, useGetOrderByIdQuery,
-     useGetTotalOrderByIdQuery
+     useGetTotalOrderByIdQuery,useGetTimeProcessByIdQuery
 } = apiOrder;

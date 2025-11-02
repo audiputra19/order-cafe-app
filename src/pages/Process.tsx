@@ -1,5 +1,5 @@
 import { useEffect, useState, type FC } from "react";
-import { FaMoneyBillTransfer } from "react-icons/fa6";
+import { FaCircle, FaMoneyBillTransfer } from "react-icons/fa6";
 import { IoFastFoodOutline } from "react-icons/io5";
 import { LuCheckCheck, LuClipboardCheck, LuInfo } from "react-icons/lu";
 import { MdOutlineArrowBack } from "react-icons/md";
@@ -7,9 +7,10 @@ import { PiChefHat } from "react-icons/pi";
 import { RiProgress3Line } from "react-icons/ri";
 import { useNavigate, useParams } from "react-router-dom";
 import { ModalCancel } from "../components/ModalCancel";
-import { apiOrder, useFinishOrderMutation, useGetOrderByIdQuery, useGetOrderItemsQuery } from "../services/apiOrder";
+import { apiOrder, useFinishOrderMutation, useGetOrderByIdQuery, useGetOrderItemsQuery, useGetTimeProcessByIdQuery } from "../services/apiOrder";
 import { socket } from "../socket";
 import { useDispatch } from "react-redux";
+import moment from "moment";
 
 const Process: FC = () => {
   const { orderID = "" } = useParams<{ orderID: string }>();
@@ -20,6 +21,10 @@ const Process: FC = () => {
     refetchOnMountOrArgChange: true,
   });
   const { data: getOrderItems = [], isLoading: isLoadingOrderItems } = useGetOrderItemsQuery(orderID, {
+    skip: !orderID,
+    refetchOnMountOrArgChange: true,
+  });
+  const { data: getTimeProcess, isLoading: isLoadingTimeProcess } = useGetTimeProcessByIdQuery(orderID, {
     skip: !orderID,
     refetchOnMountOrArgChange: true,
   });
@@ -34,35 +39,35 @@ const Process: FC = () => {
     {
       name: "pending",
       label: "Pembayaran berhasil", 
-      desc: "Pesanan sudah dibayar, menunggu bagian kasir melanjutkan proses",
+      desc: "Menunggu bagian kasir melanjutkan proses",
     },
     {
       name: "acc kasir",
       label: "Pesanan diproses",
-      desc: "Pesanan sudah diproses kasir, menunggu bagian dapur melanjutkan proses",
+      desc: "Menunggu bagian dapur melanjutkan proses",
     },
     {
       name: "acc dapur",
       label: "Pesanan sedang dibuat",
-      desc: "Pesanan sedang dibuat, mohon ditunggu",
+      desc: "Mohon ditunggu",
     },
     {
       name: "ready",
       label: "Pesanan siap",
-      desc: "Pesanan sudah siap, silahkan ambil diarea pengambilan",
+      desc: "Silahkan ambil diarea pengambilan",
     }
     ,
     {
       name: "done",
       label: "Pesanan selesai",
-      desc: "Pesanan sudah selesai",
+      desc: "Terima kasih atas pesanan anda",
     },
   ] as const;
 
   const waitingStep = {
     name: "waiting",
     label: "Menunggu pembayaran",
-    desc: "Pesanan sudah dibuat, silahkan lakukan pembayaran ke kasir",
+    desc: "Silahkan lakukan pembayaran ke kasir",
   };
 
   const steps = getOrder?.status === "paid" ? baseSteps : [waitingStep, ...baseSteps];
@@ -99,6 +104,33 @@ const Process: FC = () => {
     dispatch(apiOrder.util.invalidateTags(["Order"]));
   };
 
+  const renderTime = (name: string) => {
+    const formatTime = (date?: string | null) => {
+      if (!date) return null; // kalau belum ada datanya
+      return (
+        <>
+          <p className="text-xs text-gray-400">{moment(date).format("DD MMM")}</p>
+          <p className="text-xs text-gray-400">{moment(date).format("HH:mm")}</p>
+        </>
+      );
+    };
+
+    switch (name) {
+      case "pending":
+        return <div>{formatTime(getTimeProcess?.paid)}</div>;
+      case "acc kasir":
+        return <div>{formatTime(getTimeProcess?.acc_kasir)}</div>;
+      case "acc dapur":
+        return <div>{formatTime(getTimeProcess?.acc_dapur)}</div>;
+      case "ready":
+        return <div>{formatTime(getTimeProcess?.ready)}</div>;
+      case "done":
+        return <div>{formatTime(getTimeProcess?.done)}</div>;
+      default:
+        return null;
+    }
+  };
+
   return (
     <>
       <div className="sm:flex sm:justify-center">
@@ -112,7 +144,7 @@ const Process: FC = () => {
               <MdOutlineArrowBack size={25} />
             </div>
             <p className="text-lg font-bold px-5 py-1 bg-card2 rounded-full">
-              Process
+              Proses
             </p>
             <div className="text-main p-2 rounded-full bg-main">
               <MdOutlineArrowBack size={25} />
@@ -148,11 +180,10 @@ const Process: FC = () => {
               {/* Steps */}
               <div className="relative flex flex-col px-10 py-5">
                   <div className="pb-5 flex justify-between items-center">
-                      <div className="py-1 px-3 bg-main border border-primary text-primary rounded w-fit text-sm">
-                          Meja no : 
-                          <span className="ml-2 font-semibold">{getOrder?.meja}</span>
+                      <div className="font-semibold text-sm">
+                          ORDER ID
+                          <span className="ml-2 font-bold text-primary">{getOrder?.order_id}</span>
                       </div>
-                      <p className="text-xs font-semibold text-gray-400">{getOrder?.order_id}</p>
                   </div>
                   {steps.map((step, index) => {
                       const currentStepName =
@@ -162,35 +193,37 @@ const Process: FC = () => {
                       const isCompleted = index < currentStepIndex;
                       const isActive = index === currentStepIndex;
 
-                      const icon =
-                          step.name === "waiting" ? (
-                            <LuInfo size={18} />
-                          ) : step.name === "pending" ? (
-                            <FaMoneyBillTransfer />
-                          ) : step.name === "acc kasir" ? (
-                            <RiProgress3Line size={18}/>
-                          ) : step.name === "acc dapur" ? (
-                            <PiChefHat size={18} />
-                          ) : step.name === "ready" ? (
-                            <IoFastFoodOutline size={18} />
-                          ) : (
-                            <LuClipboardCheck size={18}/>
-                          )
+                      // const icon =
+                      //     step.name === "waiting" ? (
+                      //       <LuInfo size={18} />
+                      //     ) : step.name === "pending" ? (
+                      //       <FaMoneyBillTransfer />
+                      //     ) : step.name === "acc kasir" ? (
+                      //       <RiProgress3Line size={18}/>
+                      //     ) : step.name === "acc dapur" ? (
+                      //       <PiChefHat size={18} />
+                      //     ) : step.name === "ready" ? (
+                      //       <IoFastFoodOutline size={18} />
+                      //     ) : (
+                      //       <LuClipboardCheck size={18}/>
+                      //     )
 
                       return (
-                          <div key={step.name} className="grid grid-cols-[32px_1fr] items-center gap-4 relative min-h-20">
+                          <div key={step.name} className="grid grid-cols-[32px_1fr] items-center gap-5 relative min-h-19">
                               {/* Circle + line */}
                               <div className="flex flex-col items-center relative">
                                   <span
                                   className={`z-10 flex h-8 w-8 items-center justify-center rounded-full ring-4 transition-all duration-300 ${
                                       isCompleted || (isActive && step.name === "done")
-                                      ? "bg-primary text-white ring-green-200"
+                                      ? "bg-primary text-white ring-main"
                                       : isActive
-                                      ? "border-2 border-primary bg-white text-primary ring-green-200"
-                                      : "bg-gray-300 ring-gray-200 text-black"
+                                      ? "border-2 border-primary bg-main text-primary ring-green-200"
+                                      : "border-2 border-gray-200 bg-main ring-main text-gray-300"
                                   }`}
                                   >
-                                  {isCompleted || (isActive && step.name === "done") ? <LuCheckCheck size={20} /> : icon}
+                                  {isCompleted || (isActive && step.name === "done") 
+                                  ? <FaCircle size={12} /> 
+                                  : <FaCircle size={12} />}
                                   {isActive && step.name !== "done" && (
                                       <span className="absolute h-8 w-8 rounded-full border-2 border-primary animate-ping" />
                                   )}
@@ -199,7 +232,7 @@ const Process: FC = () => {
                                   {/* connector line */}
                                   {index < steps.length - 1 && (
                                   <span
-                                      className={`absolute top-10 left-1/2 -translate-x-1/2 w-0.5 h-[32px] ${
+                                      className={`absolute top-8 left-1/2 -translate-x-1/2 w-0.5 h-[46px] ${
                                       isCompleted ? "bg-primary" : "bg-gray-300"
                                       }`}
                                   />
@@ -207,15 +240,18 @@ const Process: FC = () => {
                               </div>
 
                               {/* Text */}
-                              <div>
-                                  <p
-                                  className={`font-medium capitalize ${
-                                      isCompleted || isActive ? "text-primary" : ""
-                                  }`}
-                                  >
-                                  {step.label}
-                                  </p>
-                                  <p className="text-xs text-gray-400">{step.desc}</p>
+                              <div className="flex justify-between items-center gap-5">
+                                <div>
+                                    <p
+                                      className="font-medium capitalize"
+                                    >
+                                      {step.label}
+                                    </p>
+                                    <p className="text-xs text-gray-400">{step.desc}</p>
+                                </div>
+                                <div className="text-right flex flex-col min-w-[50px]">
+                                  {renderTime(step.name)}
+                                </div>
                               </div>
                           </div>
                       );
@@ -237,7 +273,7 @@ const Process: FC = () => {
                                           className="text-gray-400 text-sm max-w-[230px]"
                                       >
                                           {item.nama} ({Number(item.harga).toLocaleString("id-ID")})
-                                          <span className="ml-1 text-primary">{`+${item.qty}`}</span>
+                                          <span className="ml-1 text-primary font-semibold">{`x${item.qty}`}</span>
                                       </div>
                                       <div className="text-sm">{total.toLocaleString("id-ID")}</div>
                                   </div>

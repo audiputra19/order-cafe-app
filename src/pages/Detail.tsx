@@ -121,7 +121,7 @@ const Detail: FC = () => {
                         </div>
                         <div className="p-3 pb-[83px]">
                             <div className="p-4 bg-card2 border border-card rounded-xl">
-                                <p className="text-base font-bold">Description</p>
+                                <p className="text-base font-bold">Deskripsi</p>
                                 <p className="text-sm mt-3 text-gray-400">{selectedProduct?.deskripsi}</p>
                             </div>
                         </div>
@@ -152,7 +152,7 @@ const Detail: FC = () => {
                                     className="flex-1 bg-primary p-3 rounded-full text-white font-semibold cursor-pointer"
                                     onClick={() => handleAddToCart(selectedProduct)}
                                 >
-                                    Add to Cart
+                                    Masukan Keranjang
                                 </button>
                             </div>
                         </div>
