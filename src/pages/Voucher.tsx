@@ -9,7 +9,7 @@ import clsx from "clsx";
 import { RiDiscountPercentLine } from "react-icons/ri";
 
 const Voucher: FC = () => {
-    const {data: getVoucher = [], isLoading: isLoadingVoucher} = useGetVoucherQuery(undefined, {
+    const {data: getVoucher = []} = useGetVoucherQuery(undefined, {
         refetchOnMountOrArgChange: true
     })
     const navigate = useNavigate();

@@ -90,10 +90,14 @@ const CartSlice = createSlice({
             state.paymentMethod = undefined;
             state.voucher = 0;
             state.voucherManual = false;
+        },
+        removeVoucher: (state) => {
+            state.voucher = 0;
+            state.voucherManual = false;
         }
     }
 });
 
 export const { addToCart, addToCartWithQty, addToCartWithTypeNote, setPaymentMethod, setVoucher, 
-    setVoucherId, increaseQty, decreaseQty, removeFromCart, removeAllCart } = CartSlice.actions;
+    setVoucherId, increaseQty, decreaseQty, removeFromCart, removeAllCart, removeVoucher } = CartSlice.actions;
 export default CartSlice.reducer;

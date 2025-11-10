@@ -5,9 +5,10 @@ import { useGetCompanyProfileQuery } from "../services/apiProfile";
 import { useAppDispatch, useAppSelector } from "../store";
 import { LuTicketPercent } from "react-icons/lu";
 import { useCreatePaymentMutation } from "../services/apiPayment";
-import { removeAllCart, setVoucher } from "../store/CartSlice";
+import { removeAllCart, removeVoucher, setVoucher } from "../store/CartSlice";
 import { Loading } from "../components/Loading";
 import { useGetVoucherQuery } from "../services/apiVoucher";
+import moment from "moment";
 
 const Confirm:FC = () => {
     const navigate = useNavigate();
@@ -39,11 +40,21 @@ const Confirm:FC = () => {
     const voucherAuto = useMemo(() => {
         if (!getVoucher.length) return null;
 
-        const eligibleVouchers = getVoucher.filter(
-            (item) => subTotal >= Number(item.min_belanja ?? 0)
-        );
+        const now = moment();
+
+        // filter hanya voucher yang masih berlaku & memenuhi min_belanja
+        const eligibleVouchers = getVoucher.filter((item) => {
+            const minBelanja = Number(item.min_belanja ?? 0);
+            const dueDate = item.due_date ? moment(item.due_date) : null;
+
+            return (
+                subTotal >= minBelanja &&
+                (!dueDate || dueDate.isSameOrAfter(now, "day")) // belum kedaluwarsa
+            );
+        });
 
         if (eligibleVouchers.length > 0) {
+            // ambil voucher auto dengan diskon terbesar
             return eligibleVouchers.reduce((max, item) =>
             item.persen > max.persen ? item : max
             );
@@ -76,7 +87,7 @@ const Confirm:FC = () => {
         if (voucherManual) return;
 
         if (!voucherAuto) {
-            dispatch(setVoucher(0));
+            dispatch(removeVoucher());
             return;
         }
 
@@ -86,7 +97,7 @@ const Confirm:FC = () => {
             }
         } else {
             if (safeVoucherRedux > 0) {
-                dispatch(setVoucher(0));
+                dispatch(removeVoucher());
             }
         }
     }, [subTotal, voucherAuto, safeVoucherRedux, dispatch, voucherManual]);
@@ -131,7 +142,7 @@ const Confirm:FC = () => {
                 <div className="border-l-4 border-l-green-300 border border-card bg-secondary p-3 rounded">
                     <div className="flex justify-between items-center">
                         <p className="flex-1 max-w-[280px]">{item.nama}</p>
-                        <p className="text-sm text-red-500 font-semibold">x {item.quantity}</p>
+                        <p className="text-sm text-red-500 font-semibold">x{item.quantity}</p>
                     </div>
                     <div className="text-sm text-gray-400">
                         {item.drinkType && (

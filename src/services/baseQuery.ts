@@ -1,11 +1,12 @@
 import { fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { BASE_URL } from "../components/BASE_URL";
 
 export const baseQuery = fetchBaseQuery({
-    baseUrl: 'http://localhost:3002/'
+    baseUrl: `${BASE_URL}/`
 });
 
 export const baseQueryAuth = fetchBaseQuery({
-    baseUrl: "http://localhost:3002/auth",
+    baseUrl: `${BASE_URL}/auth`,
     prepareHeaders: (headers, { getState }) => {
         const token = (getState() as any).auth.token;
         if (token) headers.set("authorization", `Bearer ${token}`);

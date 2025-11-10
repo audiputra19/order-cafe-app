@@ -51,7 +51,7 @@ const HeaderBar = () => {
 
     return (
         <div className="flex justify-center">
-            <div className="sm:w-[400px] w-full p-2 bg-primary text-white flex justify-between">
+            <div className="sm:w-[400px] w-full p-2 bg-main border-b border-card flex justify-between">
                 <span className="text-sm flex">
                     <p>Meja:</p>
                     <p className="ml-1 font-bold">{meja ? String(meja).padStart(2, "0") : "--"}</p>

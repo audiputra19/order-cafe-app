@@ -1,4 +1,5 @@
 import { io } from "socket.io-client";
+import { BASE_URL, BASE_URL_ADMIN } from "./components/BASE_URL";
 
-export const socket = io("http://localhost:3001");
-export const socket2 = io("http://localhost:3002");
+export const socket = io(BASE_URL_ADMIN);
+export const socket2 = io(BASE_URL);

@@ -1,16 +1,12 @@
+import moment from "moment";
 import { useEffect, useState, type FC } from "react";
-import { FaCircle, FaMoneyBillTransfer } from "react-icons/fa6";
-import { IoFastFoodOutline } from "react-icons/io5";
-import { LuCheckCheck, LuClipboardCheck, LuInfo } from "react-icons/lu";
+import { FaCircle } from "react-icons/fa6";
 import { MdOutlineArrowBack } from "react-icons/md";
-import { PiChefHat } from "react-icons/pi";
-import { RiProgress3Line } from "react-icons/ri";
+import { useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { ModalCancel } from "../components/ModalCancel";
 import { apiOrder, useFinishOrderMutation, useGetOrderByIdQuery, useGetOrderItemsQuery, useGetTimeProcessByIdQuery } from "../services/apiOrder";
 import { socket } from "../socket";
-import { useDispatch } from "react-redux";
-import moment from "moment";
 
 const Process: FC = () => {
   const { orderID = "" } = useParams<{ orderID: string }>();
@@ -152,7 +148,7 @@ const Process: FC = () => {
           </div>
           
           {/* Loading Screen */}
-          {(isLoadingOrder || isLoadingOrderItems || isLoadingFinish) ? (
+          {(isLoadingOrder || isLoadingOrderItems || isLoadingFinish || isLoadingTimeProcess) ? (
             <div className="flex flex-col gap-5 bg-main min-h-screen px-10 py-5 animate-pulse">
               <div className="w-full bg-card2 rounded-xl p-3">
                 <div className="flex justify-between items-center">
@@ -178,7 +174,7 @@ const Process: FC = () => {
           ) : (
             <>
               {/* Steps */}
-              <div className="relative flex flex-col px-10 py-5">
+              <div className="relative flex flex-col p-5">
                   <div className="pb-5 flex justify-between items-center">
                       <div className="font-semibold text-sm">
                           ORDER ID

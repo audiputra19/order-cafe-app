@@ -8,7 +8,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { BASE_URL } from "../components/BASE_URL";
 import { Categories } from "../config/db";
 import { useAppDispatch, useAppSelector } from "../store";
-import { addToCartWithTypeNote, decreaseQty, increaseQty, removeFromCart, setVoucher } from "../store/CartSlice";
+import { addToCartWithTypeNote, decreaseQty, increaseQty, removeFromCart, removeVoucher } from "../store/CartSlice";
 
 const Cart: FC = () => {
     const navigate = useNavigate();
@@ -21,7 +21,7 @@ const Cart: FC = () => {
     const [isFirstLoad, setIsFirstLoad] = useState(true);
 
     useEffect(() => {
-        dispatch(setVoucher(0));
+        dispatch(removeVoucher());
     }, [dispatch]);
 
     useEffect(() => {
