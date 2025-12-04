@@ -14,7 +14,7 @@ import { useGetProductQuery } from "../services/apiProduct";
 import { useAppDispatch } from "../store";
 import { addToCart } from "../store/CartSlice";
 import { useGetCompanyProfileQuery } from "../services/apiProfile";
-import { BASE_URL } from "../components/BASE_URL";
+import { BASE_URL_ADMIN } from "../components/BASE_URL";
 
 const Home: FC = () => {
     const [open, setOpen] = useState<boolean>(false);
@@ -130,7 +130,7 @@ const Home: FC = () => {
                 onClick={() => navigate(`/detail/${item.id}`)}
             >
                 <img 
-                    src={`${BASE_URL}${item.image_path}`}
+                    src={`${BASE_URL_ADMIN}${item.image_path}`}
                     alt={item.image_title}
                     className="w-full h-[150px] rounded-lg object-cover"
                 />
@@ -167,7 +167,7 @@ const Home: FC = () => {
                     <div className="flex items-center gap-2">
                         {getCompanyProfile ? (
                             <img 
-                                src={`${BASE_URL}${getCompanyProfile.image_path}`}
+                                src={`${BASE_URL_ADMIN}${getCompanyProfile.image_path}`}
                                 alt={getCompanyProfile.image_title} 
                                 className="w-[35px] rounded-full"
                             />
@@ -213,7 +213,7 @@ const Home: FC = () => {
                     ) : (
                         <div className="flex flex-col justify-center items-center text-gray-400 mt-10">
                             <FaBoxOpen size={96}/>
-                            <p className="text-lg font-bold">No Product Found</p>
+                            <p className="text-lg font-bold">Produk Tidak Ditemukan</p>
                         </div>
                     )}
                 </div>

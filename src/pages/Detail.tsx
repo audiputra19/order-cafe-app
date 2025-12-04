@@ -8,7 +8,7 @@ import { useCartIcon } from "../contexts/CartIconContext";
 import { useGetProductQuery } from "../services/apiProduct";
 import { useAppDispatch, useAppSelector } from "../store";
 import { addToCartWithQty } from "../store/CartSlice";
-import { BASE_URL } from "../components/BASE_URL";
+import { BASE_URL_ADMIN } from "../components/BASE_URL";
 
 const Detail: FC = () => {
     const navigate = useNavigate();
@@ -77,7 +77,7 @@ const Detail: FC = () => {
             ) : (
                 <div className="sm:flex sm:justify-center">
                     <div className="sm:w-[400px] bg-main min-h-screen">
-                        <div className="relative">
+                        <div className="relative pt-3">
                             <div className="absolute w-full flex justify-between items-center p-3">
                                 <div 
                                     className="bg-white text-black p-2 rounded-full cursor-pointer"
@@ -110,7 +110,7 @@ const Detail: FC = () => {
                                 </div>
                             </div>
                             <img 
-                                src={`${BASE_URL}${selectedProduct?.image_path}`}
+                                src={`${BASE_URL_ADMIN}${selectedProduct?.image_path}`}
                                 alt={selectedProduct?.nama}
                                 className="detail-product-img w-full h-[350px] object-cover bg-card"
                             />

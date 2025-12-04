@@ -90,10 +90,12 @@ const CartSlice = createSlice({
             state.paymentMethod = undefined;
             state.voucher = 0;
             state.voucherManual = false;
+            state.voucherId = "";
         },
         removeVoucher: (state) => {
             state.voucher = 0;
             state.voucherManual = false;
+            state.voucherId = "";
         }
     }
 });

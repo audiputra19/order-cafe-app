@@ -99,7 +99,7 @@ const Voucher: FC = () => {
                                 Min. Belanja Rp. {item.min_belanja.toLocaleString("id-ID")}
                             </span>
                             <span className={clsx("text-xs",
-                                isSelected ? "text-gray-200" : "text-gray-400"
+                                isSelected ? "text-white" : "text-gray-400"
                             )}>
                                 Berlaku s.d. {moment(item.due_date).format("YYYY-MM-DD")}
                             </span>

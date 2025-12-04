@@ -5,7 +5,7 @@ import { FiMinus, FiPlus, FiPlusCircle } from "react-icons/fi";
 import { MdOutlineArrowBack, MdOutlineStickyNote2 } from "react-icons/md";
 import { RiCloseCircleLine, RiDeleteBin5Line } from "react-icons/ri";
 import { useLocation, useNavigate } from "react-router-dom";
-import { BASE_URL } from "../components/BASE_URL";
+import { BASE_URL_ADMIN } from "../components/BASE_URL";
 import { Categories } from "../config/db";
 import { useAppDispatch, useAppSelector } from "../store";
 import { addToCartWithTypeNote, decreaseQty, increaseQty, removeFromCart, removeVoucher } from "../store/CartSlice";
@@ -54,7 +54,7 @@ const Cart: FC = () => {
                     {/* <input type="checkbox" /> */}
                     <div>
                         <img 
-                            src={`${BASE_URL}${item.image_path}`}
+                            src={`${BASE_URL_ADMIN}${item.image_path}`}
                             className="w-25 h-25 object-cover rounded-xl border border-card p-1 border-card"
                         />
                     </div>

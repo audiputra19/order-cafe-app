@@ -118,7 +118,7 @@ const Transaction: FC = () => {
                         ) : (
                             <div className="flex flex-col justify-center items-center text-gray-400 mt-10">
                                 <MdMoneyOff size={96}/>
-                                <p className="text-lg font-bold">Transaction is Empty</p>
+                                <p className="text-lg font-bold">Transaksi Kosong</p>
                             </div>
                         )}
                     </div>

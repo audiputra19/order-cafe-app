@@ -9,7 +9,7 @@ export const WarningToScan: FC = () => {
                     <div className="">
                         <RiAlarmWarningFill size={64} className="text-red-600"/>
                     </div>
-                    <div className="text-md w-3/4 text-center">You have reached the time limit please rescan the QR code.</div>
+                    <div className="text-md w-3/4 text-center">Kamu sudah mencapai limit waktu silahkan rescan kembali QR code</div>
                 </div>
             </div>
         </>

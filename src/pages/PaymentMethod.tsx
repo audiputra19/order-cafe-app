@@ -48,7 +48,10 @@ const PaymentMethod:FC = () => {
                                 >
                                     <div className="flex gap-3 items-center">
                                         <FaCoins size={22} className="text-red-500"/>
-                                        <p>Cash</p>
+                                        <div className="flex flex-col gap-1">
+                                            <p className="font-semibold">Cash</p>
+                                            <p className="text-sm text-gray-400">Bayar tunai ke kasir</p>
+                                        </div>
                                     </div>
                                     <div>
                                         <input 
@@ -66,8 +69,11 @@ const PaymentMethod:FC = () => {
                                     onClick={() => setMethod(2)}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <FaMoneyBillTransfer size={22} className="text-red-500"/>
-                                        <p>Transfer</p>
+                                        <FaMoneyBillTransfer size={34} className="text-red-500"/>
+                                        <div className="flex flex-col gap-1">
+                                            <p className="font-semibold">Transfer</p>
+                                            <p className="text-sm text-gray-400">Bayar dengan m-banking, qris atau pembayaran digital lainnya</p>
+                                        </div>
                                     </div>
                                     <div>
                                         <input 

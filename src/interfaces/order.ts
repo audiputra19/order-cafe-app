@@ -7,6 +7,8 @@ export interface GetOrderResponse {
     created_at: string;
     snap_token: string;
     metode: string;
+    diskon: number;
+    voucher: string;
 }
 
 export interface GetOrderRequest {
@@ -18,6 +20,8 @@ export interface GetOrderItemsResponse {
     nama: string;
     harga: number;
     qty: number;
+    catatan: string;
+    tipe: string;
 }
 
 export interface GetOrderItemsRequest {

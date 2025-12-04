@@ -51,17 +51,19 @@ const HeaderBar = () => {
 
     return (
         <div className="flex justify-center">
-            <div className="sm:w-[400px] w-full p-2 bg-main border-b border-card flex justify-between">
-                <span className="text-sm flex">
-                    <p>Meja:</p>
-                    <p className="ml-1 font-bold">{meja ? String(meja).padStart(2, "0") : "--"}</p>
-                </span>
-                <span className="flex text-sm">
-                    <p className="flex-1">Timer:</p>
-                    <p className="font-bold ml-1 w-[64px]">
-                        {countdown > 0 ? formatTime(countdown) : "Expired"}
-                    </p>
-                </span>
+            <div className="sm:w-[400px] w-full bg-main px-3 pt-3">
+                <div className="p-1 border border-card rounded-xl shadow-gray-100 flex justify-between">
+                    <span className="text-sm flex border border-card py-1 px-3 rounded-lg bg-card2">
+                        <p className="font-semibold">Meja:</p>
+                        <p className="ml-1 font-bold">{meja ? String(meja).padStart(2, "0") : "--"}</p>
+                    </span>
+                    <span className="flex text-sm border border-card py-1 px-3 rounded-lg bg-card2">
+                        <p className="flex-1 font-semibold">Timer:</p>
+                        <p className="font-bold ml-1 w-[64px]">
+                            {countdown > 0 ? formatTime(countdown) : "Expired"}
+                        </p>
+                    </span>
+                </div>
             </div>
         </div>
     );

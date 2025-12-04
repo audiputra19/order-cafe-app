@@ -68,12 +68,20 @@ const Confirm:FC = () => {
     safeVoucherRedux ||
     (subTotal >= Number(voucherAuto?.min_belanja ?? 0) ? voucherAuto?.persen ?? 0 : 0);
 
-    const voucherIdFinal: string | null =
-    voucherRedux !== undefined && voucherRedux > 0
-    ? String(voucherIdRedux)
-    : subTotal >= Number(voucherAuto?.min_belanja ?? 0)
-    ? String(voucherAuto?.id_voucher ?? "")
-    : null;
+    const voucherIdFinal = useMemo(() => {
+        // Kalau user pilih voucher manual → prioritas utama
+        if (voucherRedux && voucherRedux > 0 && voucherIdRedux) {
+            return String(voucherIdRedux);
+        }
+
+        // Kalau ada voucher auto aktif & subtotal memenuhi
+        if (voucherAuto && subTotal >= Number(voucherAuto.min_belanja ?? 0)) {
+            return String(voucherAuto.id_voucher ?? "");
+        }
+
+        // Tidak ada voucher aktif
+        return null;
+    }, [voucherRedux, voucherIdRedux, voucherAuto, subTotal]);
 
     // console.log("voucher id: ", voucherIdFinal);
 
